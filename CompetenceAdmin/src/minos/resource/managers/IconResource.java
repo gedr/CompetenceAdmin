@@ -13,7 +13,7 @@ public class IconResource {
 	public static enum IconType { 
 		ADD(1, "add.png"), EDIT(2, "page_edit.png"), DELETE(3, "delete.png"), 
 		UP(4, "up.png"), DOWN(5, "down.png"), NEXT(6, "next.png"), 
-		REFRESH(7, "refresh.png"), 
+		REFRESH(7, "refresh.png"), CLOCK(14, "clock.png"),
 		USER_ADD(8, "users_add.png"), USER_DELETE(9, "users_delete.png"),
 		BUSER_ADD(11, "business_user_add.png"),  BUSER_EDIT(12, "business_user_edit.png"), BUSER_DELETE(13, "business_user_delete.png");		
 

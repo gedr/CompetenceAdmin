@@ -4,14 +4,15 @@
 <log4j:configuration debug="false" xmlns:log4j="http://jakarta.apache.org/log4j/">
 
     <appender name="ConsoleAppender" class="org.apache.log4j.ConsoleAppender">
-        <param name="Encoding" value="Cp866"/>
+        <!--<param name="Encoding" value="Cp866"/> -->
+		<!--<param name="Encoding" value="UTF-8"/> -->
         <layout class="org.apache.log4j.PatternLayout">
             <param name="ConversionPattern" value="%d{ISO8601} [%-5p][%-16.16t][%32.32c] - %m%n" />
         </layout>
     </appender>
 
     <root>
-        <priority value="INFO"/>
+        <priority value="DEBUG"/>
         <appender-ref ref="ConsoleAppender" />
     </root>
 

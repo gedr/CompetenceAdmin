@@ -2,15 +2,16 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
-	<classpathentry kind="var" path="ED_LIB/apache-log4j-1.2.17/log4j-1.2.17.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/weblaf-1.26"/>
+	<classpathentry kind="var" path="ED_LIB/apache-openjpa-2.2.2/openjpa-all-2.2.2.jar"/>
+	<classpathentry kind="var" path="ED_LIB/MS_SQL/sqljdbc4.jar"/>
 	<classpathentry kind="var" path="ED_LIB/slf4j-1.7.6/slf4j-api-1.7.6.jar"/>
 	<classpathentry kind="var" path="ED_LIB/slf4j-1.7.6/slf4j-log4j12-1.7.6.jar"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/weblaf-1.26"/>
-	<classpathentry kind="var" path="ED_LIB/CompetenceEntities.jar"/>
-	<classpathentry kind="var" path="ED_LIB/sqljdbc4.jar"/>
+	<classpathentry kind="var" path="ED_LIB/apache-log4j-1.2.17/log4j-1.2.17.jar"/>
 	<classpathentry kind="var" path="ED_LIB/tuple2.jar"/>
+	<classpathentry kind="var" path="ED_LIB/CompetenceEntities.jar"/>
 	<classpathentry kind="var" path="ED_LIB/guava-15.0.jar"/>
+	<classpathentry kind="var" path="ED_LIB/migLayout/miglayout-4.0-swing.jar"/>
 	<classpathentry kind="var" path="ED_LIB/images.jar"/>
-	<classpathentry kind="var" path="ED_LIB/apache-openjpa-2.2.2/openjpa-all-2.2.2.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

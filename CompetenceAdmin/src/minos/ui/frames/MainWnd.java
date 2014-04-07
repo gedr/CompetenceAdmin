@@ -109,7 +109,7 @@ public class MainWnd extends WebFrame implements ActionListener {
 		switch (e.getActionCommand()) {
 		case COMPETENCE_CMD:
 			WebInternalFrame ifrm = new WebInternalFrame("Компетенции", true, true, true, false);
-			ifrm.add( new CompetencePanel() );
+			ifrm.add( new CompetencePanel( this ) );
 			ifrm.setBounds(10,  10,  200, 400);
 			desktop.add(ifrm);
 			ifrm.setVisible(true);

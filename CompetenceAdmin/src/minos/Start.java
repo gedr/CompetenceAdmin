@@ -1,13 +1,12 @@
 package minos;
 
 import java.sql.Timestamp;
-import java.util.Date;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Properties;
 
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
-import javax.persistence.Query;
 import javax.sql.DataSource;
 import javax.swing.JOptionPane;
 
@@ -15,6 +14,8 @@ import minos.data.services.ORMHelper;
 import minos.data.services.ORMHelper.QueryType;
 import minos.entities.Person;
 import minos.entities.Role;
+import minos.resource.managers.Resources;
+import minos.resource.managers.ResourcesConst;
 import minos.ui.frames.MainWnd;
 
 import org.apache.log4j.xml.DOMConfigurator;
@@ -72,6 +73,8 @@ public class Start {
 				if( log.isErrorEnabled() ) log.error("Start.getCurrentUser() : request return incorrect value");
 				return null;
 			}
+			Resources.getInstance().put( ResourcesConst.CURRENT_HOST, (String) lst.get(0)[0] );
+			Resources.getInstance().put( ResourcesConst.CURRENT_LOGIN, (String) lst.get(0)[1] );
 			return new Pair<>( (String) lst.get(0)[0], (String) lst.get(0)[1] );
 		} catch (Exception e) {
 			if( log.isErrorEnabled() ) log.error("Start.getCurrentUser() ", e);
@@ -88,6 +91,11 @@ public class Start {
 				if( log.isErrorEnabled() ) log.error("Start.getPerson() : request return incorrect value");
 				return null;
 			}
+			Person person = (Person) ORMHelper.findEntity( Person.class, (Integer) lst.get(0)[0] );
+			Role role = (Role) ORMHelper.findEntity( Role.class, (Integer) lst.get(0)[1] );			
+
+			Resources.getInstance().put( ResourcesConst.CURRENT_PERSON, person );
+			Resources.getInstance().put( ResourcesConst.CURRENT_ROLE, role );
 			return new Pair<>( (Integer) lst.get(0)[0], (Integer) lst.get(0)[1] );
 		} catch (Exception e) {
 			if( log.isErrorEnabled() ) log.error("Start.getPerson() ", e);
@@ -95,6 +103,11 @@ public class Start {
 		return null;
 	}
 
+	private static void initDoomsday() {
+		Calendar calendar = Calendar.getInstance();
+		calendar.set(9999, 11, 30);
+		Resources.getInstance().put(ResourcesConst.DOOMSDAY, new Timestamp( calendar.getTimeInMillis() ) );
+	}
 	
 	public static void main(String[] args) {
 		thread = Thread.currentThread();
@@ -104,7 +117,7 @@ public class Start {
 		
 		DataSource ds = fillDataSource(); // (dbconfig);		
 		if(ds == null) {
-			JOptionPane.showMessageDialog(null, "Не создано соединение с БД", "Ошибка", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(null, "пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅ", "пїЅпїЅпїЅпїЅпїЅпїЅ", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
 		
@@ -126,16 +139,7 @@ public class Start {
 		if( log.isInfoEnabled() ) log.info( role.toString() );
 		if( log.isInfoEnabled() ) log.info( person.toString() );
 		
-		ORMHelper.openManager();
-		Query q = ORMHelper.getCurrentManager().createQuery("select c.id, c.ancestorCatalog from Catalog c "
-				+ " where c.journal.editMoment <= :ts and :ts < c.journal.removeMoment"
-				+ " and c.parentCatalog.id = :pc");
-		q.setParameter("ts", new Timestamp(System.currentTimeMillis()) );
-		q.setParameter("pc", 5);
-		List<Object[]> lst = q.getResultList();
-		ORMHelper.closeManager();
-		for(Object[] objs : lst)
-			System.out.println(objs[0] + "  :  " + objs[1]);
+		initDoomsday();
 		
 		if( log.isInfoEnabled() ) log.info("start main windows");
 		new MainWnd();
@@ -152,6 +156,7 @@ public class Start {
 		factory.close();
 		// programConfig.saveConfig("program.cfg");
 		if( log.isInfoEnabled() ) log.info( "Statrt.main() :  bye" );
+		System.exit(0);
 	}
 }
 
@@ -274,18 +279,18 @@ private DBConnectionConfig makeDBConnectionConfig(ProgramConfig config) {
 		// create DataSource and load current user id and login
 		DBConnectionConfig dbconfig = t.makeDBConnectionConfig(programConfig);
 		if(dbconfig == null) {
-				JOptionPane.showMessageDialog(null, "Не создана конфигурация соединение с БД", "Ошибка", JOptionPane.ERROR_MESSAGE);
+				JOptionPane.showMessageDialog(null, "пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅ", "пїЅпїЅпїЅпїЅпїЅпїЅ", JOptionPane.ERROR_MESSAGE);
 				return;
 		}
 		programConfig.setDBConnectionConfig(dbconfig);
 		SQLServerDataSource ds = t.fillDataSource(dbconfig);		
 		if(ds == null) {
-			JOptionPane.showMessageDialog(null, "Не создано соединение с БД", "Ошибка", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(null, "пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅ", "пїЅпїЅпїЅпїЅпїЅпїЅ", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
 		Pair<Integer, String> user = t.getCurrentUser(ds);
 		if(user == null) {
-			JOptionPane.showMessageDialog(null, "Не удалось получить логин и имя пользователя", "Ошибка", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(null, "пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ", "пїЅпїЅпїЅпїЅпїЅпїЅ", JOptionPane.ERROR_MESSAGE);
 			return;			
 		}
 
