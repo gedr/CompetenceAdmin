@@ -1,10 +1,11 @@
 package minos.ui.models;
 
 import java.sql.Timestamp;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+
+import minos.data.services.ProfilePatternJPAController;
 
 import com.alee.extended.tree.AsyncTreeDataProvider;
 import com.alee.extended.tree.AsyncUniqueNode;
@@ -13,14 +14,9 @@ import com.alee.utils.compare.Filter;
 
 abstract public class BasisDataProvider<T extends AsyncUniqueNode> implements AsyncTreeDataProvider<T> {
 	private Timestamp currentTimePoint = null;
-	protected static final List<TreeElement> emptyList = Collections.emptyList();
+	protected final List<T> BASIS_EMPTY_LIST = Collections.emptyList();
 	
-	public static final Timestamp FUTURE_TIMEPOINT;
-	static {
-		Calendar cal = Calendar.getInstance();
-		cal.set(3333, 3, 3);
-		FUTURE_TIMEPOINT = new Timestamp( cal.getTimeInMillis() );		
-	}
+	public static final Timestamp FUTURE_TIMEPOINT = ProfilePatternJPAController.TIMEPOINT;
 	
 	public BasisDataProvider() {
 		setCurrentTimePoint(null);

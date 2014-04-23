@@ -2,8 +2,15 @@ package minos.ui.panels;
 
 import java.awt.BorderLayout;
 import java.awt.Window;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.Timestamp;
+
+import javax.activation.DataHandler;
+import javax.swing.JComponent;
+import javax.swing.TransferHandler;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,8 +32,8 @@ import minos.ui.dialogs.TimePointDlg;
 import minos.ui.models.BasisDataProvider;
 import minos.ui.models.CatalogDataProvider;
 import minos.ui.models.CompetenceDataProvider;
-import minos.ui.models.TreeElement;
-import minos.ui.models.TreeElement.TreeElementType;
+import minos.ui.models.MainTreeCellRenderer;
+import minos.ui.models.MainTreeNode;
 
 import com.alee.extended.tree.WebAsyncTree;
 import com.alee.laf.button.WebToggleButton;
@@ -43,9 +50,10 @@ public class CompetencePanel extends WebPanel implements ActionListener{
 	private static final String REFRESH_CMD 		= "d";
 	private static final String EDIT_CMD 			= "e";
 	private static final String CLOCK_CMD 			= "f";
+	private static final String DELETE_CMD 			= "g";
 	private static Logger log = LoggerFactory.getLogger( CompetencePanel.class );	
 	
-	private WebAsyncTree<TreeElement> tree = null;
+	private WebAsyncTree<MainTreeNode> tree = null;
 	private CompetenceDataProvider cdp = null;
 	private WebToggleButton clockBtn = null;
 	private Window owner = null;
@@ -56,23 +64,24 @@ public class CompetencePanel extends WebPanel implements ActionListener{
 	}
 	
 	private void init() {
-		setLayout(new BorderLayout());
+		setLayout( new BorderLayout() );
 		clockBtn = new WebToggleButton( null, IconResource.getInstance().getIcon( IconType.CLOCK, 32 ) );
 		clockBtn.setShadeToggleIcon ( true );
 		clockBtn.setActionCommand( CLOCK_CMD );
 		clockBtn.addActionListener( this );
         
-        
 		WebToolBar tb = new WebToolBar();		
-		tb.add( new ActionAdapter("add catalog", IconResource.getInstance().getIcon(IconType.ADD, 24), 
-				CATALOG_ADD_CMD, "Добавление нового подкаталога в каталог", this, 0) ); //(ImageIcon)res.get("icon.addFolder.32")
-		tb.add( new ActionAdapter("add competence", null, COMPETENCE_ADD_CMD, 
-				"Добавление новой компетенции в каталог", this, 0) ); //(ImageIcon)res.get("icon.addCompetence.32")
-		tb.add( new ActionAdapter("add indicator", null, INDICATOR_ADD_CMD, 
-				"Добавление нового индикатора в компетенцию", this, 0) ); //(ImageIcon)res.get("icon.addIndicator.32")
-		tb.add( new ActionAdapter("edit", null, EDIT_CMD, 
-				"Редактирование элемента", this, 0) ); //(ImageIcon)res.get("icon.addIndicator.32")
-		tb.add( new ActionAdapter("refresh", IconResource.getInstance().getIcon( IconType.REFRESH, 32 ), REFRESH_CMD, 
+		tb.add( new ActionAdapter("add catalog", IconResource.getInstance().getIcon(IconType.CATALOG_ADD, 32), 
+				CATALOG_ADD_CMD, "Добавление нового подкаталога в каталог", this, 0) ); 
+		tb.add( new ActionAdapter("add competence", IconResource.getInstance().getIcon( IconType.COMPETENCE_ADD, 32 ), COMPETENCE_ADD_CMD, 
+				"Добавление новой компетенции в каталог", this, 0) ); 
+		tb.add( new ActionAdapter("add indicator", IconResource.getInstance().getIcon( IconType.INDICATOR_ADD, 32 ), INDICATOR_ADD_CMD, 
+				"Добавление нового индикатора в компетенцию", this, 0) ); 
+		tb.add( new ActionAdapter("edit", IconResource.getInstance().getIcon( IconType.EDIT, 32 ), EDIT_CMD, 
+				"Редактирование элемента", this, 0) ); 
+		tb.add( new ActionAdapter("delete", IconResource.getInstance().getIcon( IconType.DELETE, 32 ), DELETE_CMD, 
+				"Удаление элемента", this, 0) );
+		tb.add( new ActionAdapter("refresh", IconResource.getInstance().getIcon( IconType.RELOAD, 32 ), REFRESH_CMD, 
 				"Обновить данные", this, 0) );
 		tb.add( clockBtn );
 
@@ -81,22 +90,81 @@ public class CompetencePanel extends WebPanel implements ActionListener{
 		cdp = new CompetenceDataProvider( new CatalogDataProvider() );
 		tree = new WebAsyncTree<>( cdp );
 		tree.setRootVisible(false);
-		add( new WebScrollPane(tree), BorderLayout.CENTER );
+		tree.setCellRenderer( new MainTreeCellRenderer( 24 ) );
+		tree.setDragEnabled( true );
+		
+		tree.setTransferHandler( new TransferHandler() {			
+			private static final long serialVersionUID = 1L;
+			private DataFlavor df;
+			
+			private DataFlavor getDataFlavor() {
+				if ( df != null ) return df;
+				try {
+					df = new DataFlavor( DataFlavor.javaJVMLocalObjectMimeType + ";class=java.lang.Integer" );					
+				} catch (Exception e) {
+					if ( ( log != null ) && log.isErrorEnabled() ) log.error(" CompetencePanel.getDataFlavor() ", e );
+					df = null;
+				}
+				return df;
+			}
+			
+			@Override
+			public boolean canImport( TransferSupport support ) {
+				try {
+					if ( ( support == null ) ||  
+							( !( support.getComponent() instanceof WebAsyncTree ) ) ||
+							( ( ( WebAsyncTree<?> ) support.getComponent() ).
+									getNodeForLocation( support.getDropLocation().getDropPoint() ) == null ) ){
+						return false;
+					}
+					return support.isDataFlavorSupported( getDataFlavor() );					
+				} catch (Exception e) {
+					if ( ( log != null ) && log.isErrorEnabled() ) log.error(" CompetencePanel.canImport() ", e );
+				}						
+				return false;
+			}
+
+			@Override
+			protected Transferable createTransferable( JComponent c ) {
+				log.debug( "CompetencePanel.createTransferable  " + (c instanceof WebAsyncTree) );
+				return new DataHandler(Integer.valueOf( 1234567 ), DataFlavor.javaJVMLocalObjectMimeType );
+			}
+
+			@Override
+			public int getSourceActions( JComponent c ) {
+				log.debug( "CompetencePanel   COPY_OR_MOVE " );
+				return TransferHandler.COPY_OR_MOVE;
+			}
+
+			@Override
+			public boolean importData( TransferSupport support ) {
+				try {
+					Transferable t = support.getTransferable();
+					log.debug( "CompetencePanel.importData " + t.getTransferData( getDataFlavor() ) );
+				} catch (Exception e) {
+					if ( ( log != null ) && log.isErrorEnabled() ) log.error(" CompetencePanel.importData() ", e );
+				} 
+				
+				return super.importData(support);
+			}
+			
+		});
+		add( new WebScrollPane( tree ), BorderLayout.CENTER );
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		switch ( e.getActionCommand() ) {
-		case CATALOG_ADD_CMD:	
-			addCatalog();			
+ 		case CATALOG_ADD_CMD:	
+ 			if ( addCatalog() ) tree.reloadNode( tree.getSelectedNode() );						
 			break;
 
 		case COMPETENCE_ADD_CMD:
-			addCompetence();
+			if ( addCompetence() ) tree.reloadNode( tree.getSelectedNode() );
 			break;
 
 		case INDICATOR_ADD_CMD:
-			addIndicator();
+			if ( addIndicator() ) tree.reloadNode( tree.getSelectedNode() );			
 			break;
 
 		case REFRESH_CMD:
@@ -108,14 +176,27 @@ public class CompetencePanel extends WebPanel implements ActionListener{
 			break;
 
 		case CLOCK_CMD:
-			if ( clockBtn.isSelected() ) {
-				TimePointDlg.showTimePointDlgDlg( owner, "Время в прошлом" );
-			}
+			viewHistory();
 			break;
 
 		default:
 			break;
 		}		
+	}
+	
+	private void viewHistory() {
+		if ( clockBtn.isSelected() ) {
+			Timestamp tp = TimePointDlg.showTimePointDlgDlg( owner, "Время в прошлом" );
+			if (tp == null ) {
+				clockBtn.setSelected( false );
+				return;
+			}
+			cdp.setCurrentTimePoint( tp );
+			tree.reloadRootNode();
+			return;
+		}
+		cdp.setCurrentTimePoint( null );
+		tree.reloadRootNode();
 	}
 	
 	private boolean checkHistoryView() {
@@ -127,7 +208,7 @@ public class CompetencePanel extends WebPanel implements ActionListener{
 		return false;		
 	}
 
-	private boolean checkRightSelect(TreeElementType... tets) {
+	private boolean checkRightSelect( Class<?>... clss) {
  		if ( ( tree.getSelectionCount() != 1 ) ) {
 			WebOptionPane.showMessageDialog( owner, 
 					((tree.getSelectionCount() == 0) ? "Не выбран элемент" : "Выбрано много элементов"), 
@@ -135,166 +216,157 @@ public class CompetencePanel extends WebPanel implements ActionListener{
 			return false;
 		}		
 
- 		if ( ( tets == null ) || ( tets.length == 0 ) ) return true;
- 		for ( int i = 0; i < tets.length; i++ ) {
- 			if ( tree.getSelectedNode().getType() == tets[i] ) return true;
+ 		if ( ( clss == null ) || ( clss.length == 0 ) ) return true;
+ 		for ( int i = 0; i < clss.length; i++ ) { 			
+ 			if ( tree.getSelectedNode().getUserObject().getClass().equals( clss[i] ) ) return true;
  		}
 		
-		WebOptionPane.showMessageDialog( owner, "Выбран некорректный элемент. Ожидалось :" + tets.toString(),
+		WebOptionPane.showMessageDialog( owner, "Выбран некорректный элемент.",
 					"Ошибка", WebOptionPane.ERROR_MESSAGE );
 		return false;		
 	}
 
-	private void editDispatch() {
-		if ( checkHistoryView() || !checkRightSelect( TreeElementType.CATALOG, TreeElementType.COMPETENCE, TreeElementType.INDICATOR ) ) return;
-		switch( tree.getSelectedNode().getType() ) {
-		case CATALOG:
-			editCatalog();
-			break;
-		case COMPETENCE:
-			editCompetence();
-			break;
-		case INDICATOR:
-			editIndicator();
-			break;
-		default:
-			break;		
-		}		
-	}
+	private boolean addCatalog() {
+		if ( checkHistoryView() || !checkRightSelect( Catalog.class ) ) return false;
 
-	
-	private void addIndicator() {
-		if ( checkHistoryView() || !checkRightSelect( TreeElementType.COMPETENCE ) ) return;
-		
-		Indicator newIndicator = IndicatorDlg.showIndicatorDlg( owner,  "Новый индикатор", null, false );
-		if ( newIndicator == null ) return;
-		
-		TreeElement te = tree.getSelectedNode();
-		Competence competence = (Competence) ORMHelper.findEntity( Competence.class, te.getAncestor() );
-		if( competence == null ) {
-			if ( log.isErrorEnabled() ) log.error("CompetencePanel.addIndicator(): cannot find competence in db id=" + te.getAncestor());
-			return;
+		Catalog newCatalog = CatalogDlg.showCatalogDlg(owner, "Новый каталог", null, false, 
+				IconResource.getInstance().getIcon( IconType.CATALOG_ADD, 64 ));
+		if ( newCatalog == null ) return false;
+
+		int id = ( ( Catalog ) tree.getSelectedNode().getUserObject() ).getId();
+		Catalog parentCatalog = (Catalog) ORMHelper.findEntity( Catalog.class, id, "ancestorCatalog" );
+		if ( parentCatalog == null ) {
+			if ( log.isErrorEnabled() ) log.error( "CompetencePanel.addCatalog(): cannot find parent catalog in db id=" + id );
+			return false;
 		}
-		newIndicator.setCompetence( competence );
-		IndicatorJPAController.create( newIndicator, true );
-	}
-	
-	private void addCompetence() {
-		if ( checkHistoryView() || !checkRightSelect( TreeElementType.CATALOG ) ) return;
-		
-		Competence newCompetence = CompetenceDlg.showCompetenceDlg( owner,  "Новая компетенция", null, false );
-		if ( newCompetence == null ) return;
-		
-		TreeElement te = tree.getSelectedNode();
-		Catalog catalog = (Catalog) ORMHelper.findEntity( Catalog.class, te.getAncestor() );
-		if( catalog == null ) {
-			if ( log.isErrorEnabled() ) log.error("CompetencePanel.addCompetence(): cannot find parent catalog in db id=" + te.getAncestor());
-			return;
-		}
-		newCompetence.setCatalog( catalog );
-		CompetenceJPAController.create( newCompetence, true );
-	}
-	
-	private void addCatalog() {
-		if ( checkHistoryView() || !checkRightSelect( TreeElementType.CATALOG ) ) return;
-
-		Catalog newCatalog = CatalogDlg.showCatalogDlg(owner, "Новый каталог", null, false);
-		if ( newCatalog == null ) return;
-
-		TreeElement te = tree.getSelectedNode();
-		Catalog parentCatalog = (Catalog) ORMHelper.findEntity( Catalog.class, te.getAncestor() );
-		if( parentCatalog == null ) {
-			if ( log.isErrorEnabled() ) log.error("CompetencePanel.addCatalog(): cannot find parent catalog in db id=" + te.getAncestor());
-			return;
+		if ( parentCatalog.getAncestorCatalog() != null ) {
+			WebOptionPane.showMessageDialog( this, "Отключите режим просмотра истории", "Ошибка", WebOptionPane.ERROR_MESSAGE );
+			return false;
 		}
 		newCatalog.setParentCatalog( parentCatalog );
 		CatalogJPAController.create( newCatalog, true );
+		return true;
 	}	
-	
-	private void editCatalog() {
-		if ( checkHistoryView() || !checkRightSelect( TreeElementType.CATALOG ) ) return;
 
-		TreeElement te = tree.getSelectedNode();
-		if ( te.getCurrent() != te.getAncestor() )  {
-			if ( log.isErrorEnabled() ) log.error("CompetencePanel.editCatalog() : текущий и предок разные каталоги ");
-			return;
-		}
-
-		Catalog current = (Catalog) ORMHelper.findEntity( Catalog.class, te.getCurrent(), "parentCatalog", "journal" );
-		if ( current == null ) {
-			if ( log.isErrorEnabled() ) log.error("CompetencePanel.editCatalog() : current catalog with id=" + te.getCurrent() + "  cannot find");
-			return;
-		}
+	private boolean addCompetence() {
+		if ( checkHistoryView() || !checkRightSelect( Catalog.class ) ) return false;
 		
-		if ( current.getId() < 5 ) { 
-			CatalogDlg.showCatalogDlg(owner, "Просмотр каталога", current, true);
-			if ( log.isErrorEnabled() ) log.error("CompetencePanel.editCatalog() : cannot edit catalog where id < 5");
+		Competence newCompetence = CompetenceDlg.showCompetenceDlg( owner,  "Новая компетенция", null, false );
+		if ( newCompetence == null ) return false;
+		
+		MainTreeNode te = tree.getSelectedNode();
+		int id = ( ( Catalog ) te.getUserObject() ).getId();
+		Catalog catalog = (Catalog) ORMHelper.findEntity( Catalog.class, id, "ancestorCompetence" );
+		if ( catalog == null ) {
+			if ( log.isErrorEnabled() ) log.error( "CompetencePanel.addCompetence(): cannot find catalog in db id=" + id );
+			return false;
+		}
+		if ( catalog.getAncestorCatalog() != null ) {
+			WebOptionPane.showMessageDialog( this, "Отключите режим просмотра истории", "Ошибка", WebOptionPane.ERROR_MESSAGE );
+			return false;
+		}		
+		newCompetence.setCatalog( catalog );
+		CompetenceJPAController.create( newCompetence, true );
+		return true;
+	}
+
+	private boolean addIndicator() {
+		if ( checkHistoryView() || !checkRightSelect( Competence.class ) ) return false;
+		
+		Indicator newIndicator = IndicatorDlg.showIndicatorDlg( owner,  "Новый индикатор", null, false );
+		if ( newIndicator == null ) return false;
+		
+		MainTreeNode te = tree.getSelectedNode();
+		int id = ( ( Competence ) te.getUserObject() ).getId();
+		Competence competence = (Competence) ORMHelper.findEntity( Competence.class, id, "ancestorCompetence" );
+		if( competence == null ) {
+			if ( log.isErrorEnabled() ) log.error( "CompetencePanel.addIndicator(): cannot find competence in db id=" + id );
+			return false;
+		}
+		if ( competence.getAncestorCompetence() != null ) {
+			WebOptionPane.showMessageDialog( this, "Отключите режим просмотра истории", "Ошибка", WebOptionPane.ERROR_MESSAGE );
+			return false;
+		}
+		newIndicator.setCompetence( competence );
+		IndicatorJPAController.create( newIndicator, true );
+		return true;
+	}
+
+	private void editDispatch() {
+		if ( checkHistoryView() || !checkRightSelect( Catalog.class, Competence.class, Indicator.class ) ) return;
+		if ( tree.getSelectedNode().getUserObject().getClass().equals( Catalog.class ) ) editCatalog();
+		if ( tree.getSelectedNode().getUserObject().getClass().equals( Competence.class ) ) editCompetence();
+		if ( tree.getSelectedNode().getUserObject().getClass().equals( Indicator.class ) ) editIndicator();
+	}
+
+	private void editCatalog() {
+		if ( checkHistoryView() || !checkRightSelect( Catalog.class ) ) return;
+
+		int id = ( ( Catalog ) tree.getSelectedNode().getUserObject() ).getId();
+		Catalog catalog = (Catalog) ORMHelper.findEntity( Catalog.class, id, "parentCatalog", "journal", "ancestorCatalog" );
+		if ( catalog == null ) {
+			if ( log.isErrorEnabled() ) log.error("CompetencePanel.editCatalog() : current catalog with id=" + id + "  cannot find");
 			return;
 		}		
-
-		Catalog newCatalog = CatalogDlg.showCatalogDlg(owner, "Редактирование каталога", current, false);
+		if ( ( catalog.getId() < 5 ) || ( catalog.getAncestorCatalog() != null ) ) { 
+			CatalogDlg.showCatalogDlg(owner, "Просмотр каталога", catalog, true, 
+					IconResource.getInstance().getIcon( IconType.CATALOG_EDIT, 64 ) );
+			return;
+		}
+		Catalog newCatalog = CatalogDlg.showCatalogDlg(owner, "Редактирование каталога", catalog, false,
+				IconResource.getInstance().getIcon( IconType.CATALOG_EDIT, 64 ) );
 		if ( newCatalog == null ) return;
-		String str = newCatalog.getName();
-		newCatalog.setAncestorCatalog( current );
+		newCatalog.setAncestorCatalog( catalog );
 		CatalogJPAController.edit( newCatalog, true );
-		te.setName( str );
+		tree.getSelectedNode().setUserObject( ORMHelper.findEntity( Catalog.class, id ) );
+		tree.updateUI();
 	}
 	
 	private void editCompetence() {
-		if ( checkHistoryView() || !checkRightSelect( TreeElementType.COMPETENCE ) ) return;
+		if ( checkHistoryView() || !checkRightSelect( Competence.class ) ) return;
 
-		TreeElement te = tree.getSelectedNode();
-		if ( te.getCurrent() != te.getAncestor() )  {
-			if ( log.isErrorEnabled() ) log.error("CompetencePanel.editCompetence() : текущий и предок разные компетенции ");
+		MainTreeNode te = tree.getSelectedNode();
+		int id = ( ( Competence ) te.getUserObject() ).getId();
+		Competence competence = ( Competence ) ORMHelper.findEntity( Competence.class, id, 
+				"journal", "description", "ancestorCompetence" );
+		if ( competence == null ) {
+			if ( log.isErrorEnabled() ) log.error( "CompetencePanel.editCompetence() : current competence with id=" + id + "  cannot find" );
 			return;
-		}
-
-		Competence current = ( Competence ) ORMHelper.findEntity( Competence.class, te.getCurrent(), "journal", "description" );
-		if ( current == null ) {
-			if ( log.isErrorEnabled() ) log.error( "CompetencePanel.editCatalog() : current catalog with id=" + te.getCurrent() + "  cannot find" );
-			return;
-		}
-		
-		if ( current.getVariety() != Competence.PROFESSIONAL_COMPETENCE ) { 
-			CompetenceDlg.showCompetenceDlg( owner, "Просмотр компетенции", current, true );
-			if ( log.isErrorEnabled() ) log.error("CompetencePanel.editCompetence() : cannot edit competence not PROFESSIONAL_COMPETENCE");
+		}		
+		if ( ( competence.getVariety() != Competence.PROFESSIONAL_COMPETENCE ) || ( competence.getAncestorCompetence() != null ) ){ 
+			CompetenceDlg.showCompetenceDlg( owner, "Просмотр компетенции", competence, true );
 			return;
 		}		
 
-		Competence newCompetence = CompetenceDlg.showCompetenceDlg(owner, "Редактирование компетенции", current, false);
+		Competence newCompetence = CompetenceDlg.showCompetenceDlg(owner, "Редактирование компетенции", competence, false);
 		if ( newCompetence == null ) return;
-		String str = newCompetence.getName();
-		newCompetence.setAncestorCompetence( current );
+		newCompetence.setAncestorCompetence( competence );
 		CompetenceJPAController.edit( newCompetence, true );
-		te.setName( str );
+		tree.getSelectedNode().setUserObject( ORMHelper.findEntity( Competence.class, id ) );
+		tree.updateUI();
 	}
 
 	private void editIndicator() {
-		if ( checkHistoryView() || !checkRightSelect( TreeElementType.INDICATOR ) ) return;
+		if ( checkHistoryView() || !checkRightSelect( Indicator.class ) ) return;
 
-		TreeElement te = tree.getSelectedNode();
-		if ( te.getCurrent() != te.getAncestor() )  {
-			if ( log.isErrorEnabled() ) log.error("CompetencePanel.editCompetence() : текущий и предок разные компетенции ");
+		MainTreeNode te = tree.getSelectedNode();
+		int id = ( ( Indicator ) te.getUserObject() ).getId();
+		Indicator indicator = ( Indicator ) ORMHelper.findEntity( Indicator.class, id, 
+				"competence", "journal", "ancestorIndicator" );
+		if ( indicator == null ) {
+			if ( log.isErrorEnabled() ) log.error( "CompetencePanel.editIndicator() : current indicator with id=" + id + "  cannot find" );
 			return;
-		}
-
-		Indicator current = ( Indicator ) ORMHelper.findEntity( Indicator.class, te.getCurrent(), "competence", "journal" );
-		if ( current == null ) {
-			if ( log.isErrorEnabled() ) log.error( "CompetencePanel.editCatalog() : current catalog with id=" + te.getCurrent() + "  cannot find" );
-			return;
-		}
-		
-		if ( current.getCompetence().getVariety() != Competence.PROFESSIONAL_COMPETENCE ) { 
-			IndicatorDlg.showIndicatorDlg( owner, "Просмотр индикатора", current, true );
-			if ( log.isErrorEnabled() ) log.error("CompetencePanel.editIndicator() : cannot edit indicator not PROFESSIONAL_COMPETENCE");
+		}		
+		if ( ( indicator.getCompetence().getVariety() != Competence.PROFESSIONAL_COMPETENCE ) || ( indicator.getAncestorIndicator() != null ) ){ 
+			IndicatorDlg.showIndicatorDlg( owner, "Просмотр индикатора", indicator, true );
 			return;
 		}		
 
-		Indicator newIndicator = IndicatorDlg.showIndicatorDlg(owner, "Редактирование индикатора", current, false);
+		Indicator newIndicator = IndicatorDlg.showIndicatorDlg(owner, "Редактирование индикатора", indicator, false);
 		if ( newIndicator == null ) return;
-		String str = newIndicator.getName();
-		newIndicator.setAncestorIndicator( current );
+		newIndicator.setAncestorIndicator( indicator );
 		IndicatorJPAController.edit( newIndicator, true );
-		te.setName( str );
+		tree.getSelectedNode().setUserObject( ORMHelper.findEntity( Indicator.class, id ) );
+		tree.updateUI();
 	}
 }

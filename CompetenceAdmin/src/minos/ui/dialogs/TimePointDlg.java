@@ -14,24 +14,24 @@ import net.miginfocom.swing.MigLayout;
 
 import com.alee.extended.date.WebCalendar;
 import com.alee.laf.button.WebButton;
+import com.alee.laf.optionpane.WebOptionPane;
 import com.alee.laf.rootpane.WebDialog;
 import com.alee.laf.spinner.WebSpinner;
 
 public class TimePointDlg extends WebDialog implements ActionListener {
 	private static final long serialVersionUID = 1L;
-
+	
 	private static final String OK_CMD = "1";
-	private static final String CANCEL_CMD = "2";
+	private static final String CANCEL_CMD = "2";	
 	
-	
+	private Timestamp result = null; 
 	
 	private WebCalendar cal = null;
 	private WebSpinner spin = null;
-	
-	public TimePointDlg( Window owner, String title ) {
-		super(owner, title);
-		initUI();	
 		
+	public TimePointDlg( Window owner, String title ) {		
+		super(owner, title);
+		initUI();		
 	}
 	
 	public static Timestamp showTimePointDlgDlg( Window owner, String title ) {
@@ -39,13 +39,12 @@ public class TimePointDlg extends WebDialog implements ActionListener {
 		dlg.setDefaultCloseOperation( DISPOSE_ON_CLOSE );
 		dlg.setModal(true);
 		dlg.pack();
+		dlg.setResizable( false );
 		dlg.setVisible(true);
-		//return dlg.getResult();		
-		return null;
+		return dlg.getResult();		
 	}	
 
-	private void initUI() {
-		setLayout( new MigLayout( "", "[grow]", "[][][]") );
+	private void initUI() {		
 		Date now = new Date();		
 		cal = new WebCalendar( now );
 
@@ -56,20 +55,20 @@ public class TimePointDlg extends WebDialog implements ActionListener {
         spin.setModel ( model );
         spin.setValue ( now );	
         spin.setEditor(new JSpinner.DateEditor(spin, "HH:mm:ss"));
+
+		WebButton okBtn = new WebButton( "OK" );
+		okBtn.setActionCommand( OK_CMD );		
+		okBtn.addActionListener( this );		
 		
+		WebButton cancelBtn = new WebButton( "Отмена" );
+		cancelBtn.setActionCommand( CANCEL_CMD );
+		cancelBtn.addActionListener( this );
+		
+		setLayout( new MigLayout( "", "[]", "[][][]") );
 		add( cal, "wrap" );
 		add( spin, "grow, wrap" );
-		
-		
-		WebButton okBtn = new WebButton("OK");
-		okBtn.setActionCommand(OK_CMD);		
-		okBtn.addActionListener(this);
-		add(okBtn, "alignx right");
-		
-		WebButton cancelBtn = new WebButton("Отмена");
-		cancelBtn.setActionCommand(CANCEL_CMD);
-		cancelBtn.addActionListener(this);		
-		add(cancelBtn, "alignx right");		
+		add( okBtn, "align right" );
+		add( cancelBtn, "cell 0 2, align right" );		
 	}
 
 	@Override
@@ -83,11 +82,17 @@ public class TimePointDlg extends WebDialog implements ActionListener {
 			res.set( Calendar.MINUTE, tmp.get( Calendar.MINUTE ) );
 			res.set( Calendar.SECOND, tmp.get( Calendar.SECOND ) );
 			res.set( Calendar.MILLISECOND, 0 );			
-			
-			System.out.println( new Timestamp( res.getTimeInMillis() ) );
-					
+			Date now = new Date();
+			if ( now.before( res.getTime() ) ) {
+				WebOptionPane.showMessageDialog( this, "Нельзя указывать время в будущем", "Ошибка", WebOptionPane.ERROR_MESSAGE);
+				return;
+			}				
+			result = new Timestamp( res.getTimeInMillis() );					
 		}
-
-		
+		setVisible( false );		
+	}
+	
+	private Timestamp getResult() {		
+		return result;
 	}
 }

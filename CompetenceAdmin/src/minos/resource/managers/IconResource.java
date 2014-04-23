@@ -11,11 +11,22 @@ public class IconResource {
 	private Map<Integer, ImageIcon> map;
 	
 	public static enum IconType { 
-		ADD(1, "add.png"), EDIT(2, "page_edit.png"), DELETE(3, "delete.png"), 
+		ADD(1, "add.png"), EDIT(2, "edit.png"), DELETE(3, "delete.png"), 
 		UP(4, "up.png"), DOWN(5, "down.png"), NEXT(6, "next.png"), 
-		REFRESH(7, "refresh.png"), CLOCK(14, "clock.png"),
-		USER_ADD(8, "users_add.png"), USER_DELETE(9, "users_delete.png"),
-		BUSER_ADD(11, "business_user_add.png"),  BUSER_EDIT(12, "business_user_edit.png"), BUSER_DELETE(13, "business_user_delete.png");		
+		RELOAD(7, "reload.png"), CLOCK(8, "clock.png"), OK(9, "ok.png"), NO(10, "no.png"),		
+		USER_ADD(20, "users_add.png"), USER_DELETE(21, "users_delete.png"),
+		BUSER_ADD(22, "business_user_add.png"),  BUSER_EDIT(23, "business_user_edit.png"), BUSER_DELETE(24, "business_user_delete.png"),		  
+		LEVEL0(90, "level0.png"), LEVEL1(91, "level1.png"), LEVEL2(92, "level2.png"), 
+		LEVEL3(93, "level3.png"), LEVEL4(94, "level4.png"), LEVEL5(95, "level5.png"),  
+		CATALOG_ADD(100, "folder_add.png"),  CATALOG_EDIT(101, "folder_edit.png"), CATALOG_SIMPLE(102, "folder_yellow.png"),
+		CATALOG_PROF(103, "folder_green.png"), CATALOG_PERS(104, "folder_yellow.png"), CATALOG_ADM(105, "folder_red.png"),
+		COMPETENCE_ADD(110, "book_add.png"), COMPETENCE_PROF(111, "book_green.png"),
+		COMPETENCE_PERS(112, "book_yellow.png"), COMPETENCE_ADM(113, "book_red.png"),
+		INDICATOR_ADD(120, "page_add.png"), INDICATOR(121, "page.png"),
+		PROFILE_PATTERN(130, "books.png"), PROFILE_PATTERN_ADD(131, "books_add.png"), PROFILE_PATTERN_EDIT(132, "books_edit.png")
+		
+		
+		;		
 
 		int ind;
 		String name;
@@ -42,7 +53,7 @@ public class IconResource {
 	
 	public ImageIcon getIcon(IconType icon, int size) {
 		if ( (icon == null) || (size > 1024) ) throw new IllegalArgumentException("IconType.getIcon() : " + (icon == null  ? "icon is null" : "big size") );
-		int ind = size << 16 + icon.getIndex(); 
+		int ind = ( size << 16)  + icon.getIndex(); 
 		ImageIcon img = map.get(Integer.valueOf(ind));
 		if(img == null) {
 			String res = Joiner.on("/").join("/img", String.valueOf(size), icon.getName()).toString();

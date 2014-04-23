@@ -13,5 +13,6 @@
 	<classpathentry kind="var" path="ED_LIB/guava-15.0.jar"/>
 	<classpathentry kind="var" path="ED_LIB/migLayout/miglayout-4.0-swing.jar"/>
 	<classpathentry kind="var" path="ED_LIB/images.jar"/>
+	<classpathentry kind="var" path="ED_LIB/google-gson-2.2.4/gson-2.2.4.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

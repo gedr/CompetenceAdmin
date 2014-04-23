@@ -4,78 +4,107 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.Query;
-
 import minos.data.services.ORMHelper;
-import minos.ui.models.TreeElement.TreeElementType;
+import minos.entities.Catalog;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alee.extended.tree.ChildsListener;
 
-public class CatalogDataProvider extends BasisDataProvider<TreeElement> {	
+public class CatalogDataProvider extends BasisDataProvider<MainTreeNode> {	
 	private static final int rootId = 1;	
-	private static Logger log = LoggerFactory.getLogger( CatalogDataProvider.class );		
 	
-	private TreeElement root = new TreeElement(TreeElementType.CATALOG, rootId, rootId, (short)0, "must be invisible" );
+	private static final String jpqlLoadCatalogs = " select entity from Catalog entity join fetch entity.name "
+			+ " where entity.variety %s "
+			+ " and ( (:ts between entity.journal.editMoment and entity.journal.deleteMoment) %s) "
+			+ " and entity.parentCatalog.id = :pcid order by entity.item";
 
+	private static final String jpqlLoadDeletedCatalogs = " or ( entity.journal.deleteMoment < :ts and entity.status = 2) ";
+	private static Logger log = LoggerFactory.getLogger( CatalogDataProvider.class );
 	
+	public static enum CatalogType { 
+		COMPETENCE_CATALOG( " in (1, 2, 3)" ), PROFILE_PATTERN_CATALOG( "= 0" );
+		String value;
+		CatalogType(String value) { this.value = value; }
+		public String getValue() { return value; }
+	};	
+	
+	private String jpql;
+	private CatalogType ctype = CatalogType.COMPETENCE_CATALOG;
+	private boolean visibleDeleteCatalogs = false;	
+	private MainTreeNode root = new MainTreeNode( ( Catalog ) ORMHelper.findEntity( Catalog.class, rootId ) );
+	
+	private void rebuildJpqlStatment() {
+		jpql = String.format(jpqlLoadCatalogs, ctype.getValue(),
+				( !visibleDeleteCatalogs ? " " : jpqlLoadDeletedCatalogs ) );
+	}
+
 	public CatalogDataProvider() {
 		super();
-		setCurrentTimePoint(null);
+		setCurrentTimePoint( null );
+		rebuildJpqlStatment();
 	}
 	
 	public CatalogDataProvider(Timestamp timePoint) {
 		super();
-		setCurrentTimePoint(timePoint);		
-	}	
+		setCurrentTimePoint( timePoint );	
+		rebuildJpqlStatment();
+	}
+
+	public CatalogDataProvider(CatalogType ctype) {
+		super();
+		setCurrentTimePoint( null );
+		setCatalogType( ctype );
+		rebuildJpqlStatment();
+	}
 	
 	@Override
-	public TreeElement getRoot() {
+	public MainTreeNode getRoot() {
 		return root;
 	}
 
 	@Override
-	public void loadChilds(TreeElement node, ChildsListener<TreeElement> listener) {
-		if( (log != null) && log.isDebugEnabled() ) log.debug( "CatalogTreeModel.loadChilds()" );
-		
+	public void loadChilds(MainTreeNode node, ChildsListener<MainTreeNode> listener) {
+		if ( !( node.getUserObject() instanceof Catalog ) ) {
+			String errmsg = "CatalogDataProvider.loadChilds() take wrong node :" + node;
+			if ( ( log != null ) && log.isErrorEnabled() )  log.error( errmsg );
+			listener.childsLoadFailed( new IllegalArgumentException( errmsg ) );
+		}		
 		ORMHelper.openManager();
-		Query q = ORMHelper.getCurrentManager().createQuery("select c.id, c.ancestorCatalog, c.variety, c.name from Catalog c "
-				+ " where ( (c.journal.editMoment <= :ts and :ts < c.journal.deleteMoment) or (c.journal.deleteMoment < :ts and c.status = 2) )"
-				+ " and c.parentCatalog.id = :pid order by c.item");
-		q.setParameter( "ts", getCurrentTimePoint() );
-		q.setParameter( "pid", node.getCurrent() );
-		@SuppressWarnings("unchecked")
-		List<Object[]> res = q.getResultList();
+		List<Catalog> res = ORMHelper.getCurrentManager().createQuery( jpql, Catalog.class ).
+				setParameter( "ts", getCurrentTimePoint() ).
+				setParameter( "pcid", ( ( Catalog ) node.getUserObject() ).getId() ).getResultList() ;		
 		ORMHelper.closeManager();
 		if ( (res == null) || (res.size() == 0) ) {
-			listener.childsLoadCompleted( emptyList );
+			listener.childsLoadCompleted( BASIS_EMPTY_LIST );
 			return ;
 		}		
-		List<TreeElement> lst = new ArrayList<>();
-		for ( Object[] objs : res ) { 
-			lst.add( new TreeElement( TreeElementType.CATALOG, (Integer) objs[0], (Integer) ( objs[1] == null ? objs[0] : objs[1] ), 
-					(Short) objs[2], (String) objs[3] ) ) ;
-		}
+		List<MainTreeNode> lst = new ArrayList<>();
+		for ( Catalog c : res ) lst.add( new MainTreeNode( c ) );		
 		listener.childsLoadCompleted( lst );		
 	}
 
 	@Override
-	public boolean isLeaf(TreeElement node) {	
-		if ( !checkObject( node, "isLeaf" ) ) return true;
+	public boolean isLeaf(MainTreeNode node) {		
 		return false;
-	}	
-	
-	private boolean checkObject(TreeElement obj, String funcName) {
-		if ( obj == null ) {
-			if( (log != null) && log.isErrorEnabled() ) log.error( "CatalogTreeModel." + funcName + "(): receive null argument" ); 
-			return false;
-		}
-		if ( obj.getType() != TreeElement.TreeElementType.CATALOG ) {
-			if( (log != null) && log.isErrorEnabled() ) log.error( "CatalogTreeModel.isLeaf(): receive illegal value " ); 
-			return false;
-		}
-		return true;
+	}
+
+	public void setVisibleDeleteCatalogs(boolean visibleDeleteCatalogs) {
+		this.visibleDeleteCatalogs = visibleDeleteCatalogs;
+		rebuildJpqlStatment();
+	}
+
+	public boolean isVisibleDeleteCatalogs() {
+		return visibleDeleteCatalogs;
+	}
+
+	public void setCatalogType(CatalogType ctype) {
+		this.ctype = ctype;
+		rebuildJpqlStatment();
+	}
+
+	public CatalogType getCatalogType() {
+		return ctype;
 	}
 }

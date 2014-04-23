@@ -32,15 +32,15 @@ public class CatalogDlg extends WebDialog implements ActionListener {
 	private Catalog res = null;
 	private boolean readOnly = true;
 
-	public CatalogDlg(Window owner, String title, Catalog catalog, boolean readOnly) {
+	public CatalogDlg(Window owner, String title, Catalog catalog, boolean readOnly, ImageIcon icon) {
 		super(owner, title);
 		this.catalog = catalog;
 		this.readOnly  = readOnly;
-		initUI(null);		
+		initUI( icon );		
 	}
 	
-	public static Catalog showCatalogDlg(Window owner, String title, Catalog catalog, boolean readOnly) {
-		CatalogDlg dlg = new CatalogDlg(owner, title, catalog, readOnly);
+	public static Catalog showCatalogDlg(Window owner, String title, Catalog catalog, boolean readOnly, ImageIcon icon) {
+		CatalogDlg dlg = new CatalogDlg(owner, title, catalog, readOnly, icon);
 		dlg.setDefaultCloseOperation( DISPOSE_ON_CLOSE );
 		dlg.setModal(true);
 		dlg.pack();
