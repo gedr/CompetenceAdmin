@@ -23,7 +23,7 @@ public class CatalogJPAController {
 		Short item = (Short) q.getSingleResult();
 		ORMHelper.closeManager();		
 
-		catalog.setAncestorCatalog( null );
+		catalog.setAncestor( null );
 		catalog.setSubCatalogs( null );
 		catalog.setCompetences( null );
 		catalog.setVariety( catalog.getParentCatalog().getVariety() );
@@ -41,10 +41,10 @@ public class CatalogJPAController {
 	 * @return history copy of catalog
 	 */
 	public static Catalog edit( Catalog catalog, boolean flagSaveEntity ) {
-		if ( ( catalog == null ) || ( catalog.getAncestorCatalog() == null ) || 
-				( catalog.getAncestorCatalog().getJournal() == null ) ) return null;
+		if ( ( catalog == null ) || ( catalog.getAncestor() == null ) || 
+				( catalog.getAncestor().getJournal() == null ) ) return null;
 		
-		Catalog basis = catalog.getAncestorCatalog();		
+		Catalog basis = catalog.getAncestor();		
 		// change name
 		String tmp = basis.getName();
 		basis.setName( catalog.getName() );

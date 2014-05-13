@@ -149,9 +149,9 @@ public class IndicatorDlg extends WebDialog implements ActionListener {
 	private void addHistoryInfo() {
 		if ( ( indicator == null ) || ( indicator.getVersion() == 1 ) ) return;
 		Indicator indc = (Indicator) ORMHelper.findEntity( Indicator.class, indicator.getId(), "ancestorIndicator", "historyIndicators" );		
-		if ( indc.getHistoryIndicators() == null ) return;
+		if ( indc.getHistoryList() == null ) return;
 				
-		WebList list = new WebList( indc.getHistoryIndicators() );
+		WebList list = new WebList( indc.getHistoryList() );
 		list.setEditable( false );
 				
 		WebScrollPane scrollPane = new WebScrollPane( list, false );

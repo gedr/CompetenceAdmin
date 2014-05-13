@@ -17,6 +17,8 @@ public class ProgramConfig implements Serializable {
 	private String logConfigFile;
 	private DBConnectionConfig dbconfig;
 	private boolean showDBConnectionConfig;
+	private int measureDivider;
+	private int[] actorsColumnSize;
 
 	public boolean saveConfig(String file) {		 
 		Gson gson = new Gson();
@@ -56,6 +58,8 @@ public class ProgramConfig implements Serializable {
 		mainWindowBound = null;		
 		dbconfig = null;
 		showDBConnectionConfig = true;
+		setMeasureDivider(250);
+		setActorsColumnSize(null);
 	}
 	
 	public DBConnectionConfig getDBConnectionConfig() {
@@ -89,5 +93,21 @@ public class ProgramConfig implements Serializable {
 
 	public void setLogConfigFile(String logConfigFile) {
 		this.logConfigFile = logConfigFile;
+	}
+
+	public int getMeasureDivider() {
+		return measureDivider;
+	}
+
+	public void setMeasureDivider(int measureDivider) {
+		this.measureDivider = measureDivider;
+	}
+
+	public int[] getActorsColumnSize() {
+		return actorsColumnSize;
+	}
+
+	public void setActorsColumnSize(int[] actorsColumnSize) {
+		this.actorsColumnSize = actorsColumnSize;
 	}
 }

@@ -34,7 +34,7 @@ public class ProfilePatternJPAController {
 		Short item = (Short) q.getSingleResult();
 		ORMHelper.closeManager();
 		
-		pp.setAncestorProfilePattern( null );
+		pp.setAncestor( null );
 		pp.setItem( ++item );
 		pp.setJournal( JournalJPAController.create( false ) );
 		pp.setProfilePatternElements( null );
@@ -48,15 +48,15 @@ public class ProfilePatternJPAController {
 
 	/**
 	 * create history copy of catalog
-	 * @param catalog is not null reference. Catalog and journal of AncestorProfilePattern fields must be filled 
+	 * @param catalog is not null reference. Catalog and journal of Ancestor fields must be filled 
 	 * @return history copy of catalog
 	 */
 	public static ProfilePattern edit( ProfilePattern pp, boolean saveEntity, boolean saveHistory ) {
-		if ( ( pp == null ) || ( pp.getAncestorProfilePattern() == null ) || 
-				( pp.getAncestorProfilePattern().getCatalog() == null ) ||
-				( pp.getAncestorProfilePattern().getJournal() == null ) ) return null;
+		if ( ( pp == null ) || ( pp.getAncestor() == null ) || 
+				( pp.getAncestor().getCatalog() == null ) ||
+				( pp.getAncestor().getJournal() == null ) ) return null;
 		
-		ProfilePattern basis = pp.getAncestorProfilePattern();
+		ProfilePattern basis = pp.getAncestor();
 		if ( !basis.getName().equals( pp.getName() ) ) { // change name
 			String tmp = basis.getName();
 			basis.setName( pp.getName() );

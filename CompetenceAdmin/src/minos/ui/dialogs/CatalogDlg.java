@@ -121,9 +121,9 @@ public class CatalogDlg extends WebDialog implements ActionListener {
 	private void addHistoryInfo() {
 		if ( ( catalog == null ) || ( catalog.getVersion() == 1 ) ) return;
 		Catalog cat = (Catalog) ORMHelper.findEntity( Catalog.class, catalog.getId(), "ancestorCatalog", "historyCatalogs" );
-		if ( cat.getHistoryCatalogs() == null ) return;
+		if ( cat.getHistoryList() == null ) return;
 				
-		WebList list = new WebList( cat.getHistoryCatalogs() );
+		WebList list = new WebList( cat.getHistoryList() );
 		list.setEditable( false );
 				
 		WebScrollPane scrollPane = new WebScrollPane( list, false );

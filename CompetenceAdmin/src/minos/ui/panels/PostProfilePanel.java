@@ -8,7 +8,6 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
 
-import minos.entities.EstablishedPost;
 import minos.resource.managers.IconResource;
 import minos.resource.managers.IconResource.IconType;
 import minos.resource.managers.Resources;
@@ -99,20 +98,39 @@ public class PostProfilePanel extends WebPanel implements ActionListener{
 	private void showConfig( ActionEvent e) {
 		if ( ddp == null ) return;
 		final WebPopOver popOver = new WebPopOver ( owner );
+
 		final WebSwitch switchDeletedDivision = makeSwitchBtn( ddp.isVisibleDeletedDivisions() );
 		final WebSwitch switchOverdueDivision = makeSwitchBtn( ddp.isVisibleOverdueDivisions() );
 		final WebSwitch switchDisapproveDivision = makeSwitchBtn( ddp.isVisibleDisapproveDivisions() );
+
+		final WebSwitch switchDeletedPost = makeSwitchBtn( epdp.isVisibleDeletedEstablishedPosts() );
+		final WebSwitch switchOverduePost = makeSwitchBtn( epdp.isVisibleOverdueEstablishedPosts() );
+		final WebSwitch switchDisapprovePost = makeSwitchBtn( epdp.isVisibleDisapproveEstablishedPosts() );
+		final WebSwitch switchGroupPost = makeSwitchBtn( epdp.isVisibleGroupEstablishedPost() );
+/*
+
+		final WebCheckBox switchDeletedDivision = new WebCheckBox( ddp.isVisibleDeletedDivisions() );
+		final WebCheckBox switchOverdueDivision = new WebCheckBox( ddp.isVisibleOverdueDivisions() );
+		final WebCheckBox switchDisapproveDivision = new WebCheckBox( ddp.isVisibleDisapproveDivisions() );
+
+		final WebCheckBox switchDeletedPost = new WebCheckBox( epdp.isVisibleDeletedEstablishedPosts() );
+		final WebCheckBox switchOverduePost = new WebCheckBox( epdp.isVisibleOverdueEstablishedPosts() );
+		final WebCheckBox switchDisapprovePost = new WebCheckBox( epdp.isVisibleDisapproveEstablishedPosts() );
+		final WebCheckBox switchGroupPost = new WebCheckBox( epdp.isVisibleGroupEstablishedPost() );
+*/
 		
 		popOver.setCloseOnFocusLoss ( true );
 	    // popOver.setModal ( true );
 	    popOver.setMargin ( 10 );
 	    popOver.setMovable ( false );
 	    popOver.setLayout( new MigLayout( "", "[][]", "[][][][]" ));
-	    //popOver.setLayout ( new VerticalFlowLayout () );
-	    WebLabel l = new WebLabel( "Отображение отделов" );
-	    l.setFont( l.getFont().deriveFont( Font.BOLD ) );
+
+	    WebLabel l1 = new WebLabel( "Отображение отделов" );
+	    l1.setFont( l1.getFont().deriveFont( Font.BOLD ) );
+	    WebLabel l2 = new WebLabel( "Отображение штатных должностей" );
+	    l2.setFont( l1.getFont() );
 	    
-	    popOver.add( l, "split 2, span" );
+	    popOver.add( l1, "split 2, span" );
 	    popOver.add( new WebSeparator(), "growx, wrap" );
 	    popOver.add( new WebLabel( "Показывать просроченые отделы" ));
 	    popOver.add( switchOverdueDivision, "wrap" );
@@ -120,6 +138,17 @@ public class PostProfilePanel extends WebPanel implements ActionListener{
 	    popOver.add( switchDeletedDivision, "wrap" );
 	    popOver.add( new WebLabel( "Показывать отделы, не согласовнае ОТИЗом" ) );
 	    popOver.add( switchDisapproveDivision, "wrap" );
+	    popOver.add( l2, "split 2, span" );
+	    popOver.add( new WebSeparator(), "growx, wrap" );
+	    popOver.add( new WebLabel( "Показывать просроченые должности" ));
+	    popOver.add( switchOverduePost, "wrap" );
+	    popOver.add( new WebLabel( "Показывать удаленые должности" ) );
+	    popOver.add( switchDeletedPost, "wrap" );
+	    popOver.add( new WebLabel( "Показывать должности, не согласовнае ОТИЗом" ) );
+	    popOver.add( switchDisapprovePost, "wrap" );
+	    popOver.add( new WebLabel( "Группировка должностей" ) );
+	    popOver.add( switchGroupPost, "wrap" );
+
 	    popOver.add( new WebSeparator(), "split 2, span, growx, wrap" );	    
 	    popOver.add( new WebButton( "Применить", new ActionListener ()
 	    {
@@ -138,10 +167,34 @@ public class PostProfilePanel extends WebPanel implements ActionListener{
 	        	if ( switchDisapproveDivision.isSelected() != ddp.isVisibleDisapproveDivisions() ) {
 	        		ddp.setVisibleDisapproveDivisions( switchDisapproveDivision.isSelected() );
 	        		fUpdate = true;
+	        	}
+	        	if ( switchDeletedPost.isSelected() != epdp.isVisibleDeletedEstablishedPosts() ) {
+	        		epdp.setVisibleDeletedEstablishedPosts( switchDeletedPost.isSelected() );
+	        		fUpdate = true;
 	        	}	        	
+	        	if ( switchDeletedPost.isSelected() != epdp.isVisibleDeletedEstablishedPosts() ) {
+	        		epdp.setVisibleDeletedEstablishedPosts( switchDeletedPost.isSelected() );
+	        		fUpdate = true;
+	        	}	        	
+	        	if ( switchOverduePost.isSelected() != epdp.isVisibleOverdueEstablishedPosts() ) {
+	        		epdp.setVisibleOverdueEstablishedPosts( switchOverduePost.isSelected() );
+	        		fUpdate = true;
+	        	}	        	
+	        	if ( switchDisapprovePost.isSelected() != epdp.isVisibleDisapproveEstablishedPosts() ) {
+	        		epdp.setVisibleDisapproveEstablishedPosts( switchDisapprovePost.isSelected() );
+	        		fUpdate = true;
+	        	}	        	
+	        	if ( switchGroupPost.isSelected() != epdp.isVisibleGroupEstablishedPost() ) {
+	        		epdp.setVisibleGroupEstablishedPost( switchGroupPost.isSelected() );
+	        		fUpdate = true;
+	        	}      	
+	        	
 	        	popOver.setVisible( false );
 	        	popOver.dispose();
-	        	if ( fUpdate ) tree.reloadRootNode();
+	        	if ( fUpdate ) {
+	        		
+	        		tree.reloadRootNode();
+	        	}
 	        }
 	    } ), "growx, span" );
 	    popOver.show( ( JButton )  e.getSource() );	    

@@ -12,7 +12,6 @@ import java.io.IOException;
 import javax.activation.DataHandler;
 import javax.swing.JComponent;
 import javax.swing.TransferHandler;
-import javax.swing.TransferHandler.TransferSupport;
 
 import minos.data.services.CatalogJPAController;
 import minos.data.services.ORMHelper;
@@ -81,7 +80,6 @@ public class ProfilePatternPanel extends WebPanel implements ActionListener{
 				}
 				return df;
 			}
-
 			
 			@Override
 			public boolean canImport( TransferSupport support ) {
@@ -123,7 +121,6 @@ public class ProfilePatternPanel extends WebPanel implements ActionListener{
 				
 				return super.importData(support);
 			}
-			
 		});
         
 		WebToolBar tb = new WebToolBar();		
@@ -207,7 +204,7 @@ public class ProfilePatternPanel extends WebPanel implements ActionListener{
 			if ( log.isErrorEnabled() ) log.error( "ProfilePatternPanel.addCatalog(): cannot find parent catalog in db id=" + id );
 			return false;
 		}
-		if ( parentCatalog.getAncestorCatalog() != null ) {
+		if ( parentCatalog.getAncestor() != null ) {
 			WebOptionPane.showMessageDialog( this, "Отключите режим просмотра истории", "Ошибка", WebOptionPane.ERROR_MESSAGE );
 			return false;
 		}
@@ -229,7 +226,7 @@ public class ProfilePatternPanel extends WebPanel implements ActionListener{
 			if ( log.isErrorEnabled() ) log.error( "ProfilePatternPanel.addCatalog(): cannot find parent catalog in db id=" + id );
 			return false;
 		}
-		if ( parentCatalog.getAncestorCatalog() != null ) {
+		if ( parentCatalog.getAncestor() != null ) {
 			WebOptionPane.showMessageDialog( this, "Отключите режим просмотра истории", "Ошибка", WebOptionPane.ERROR_MESSAGE );
 			return false;
 		}

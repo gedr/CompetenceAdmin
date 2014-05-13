@@ -14,6 +14,7 @@ public class ResourcesConst {
 	
 	public static final int DOOMSDAY								= 6;
 	
+	public static final int FILIALS_PREFIX							= 9;
 	public static final int FILIALS_LIST							= 10;
 	public static final int BASE_POST_LIST							= 11;
 	public static final int CFO_LIST								= 12;

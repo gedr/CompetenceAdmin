@@ -239,7 +239,7 @@ public class CompetencePanel extends WebPanel implements ActionListener{
 			if ( log.isErrorEnabled() ) log.error( "CompetencePanel.addCatalog(): cannot find parent catalog in db id=" + id );
 			return false;
 		}
-		if ( parentCatalog.getAncestorCatalog() != null ) {
+		if ( parentCatalog.getAncestor() != null ) {
 			WebOptionPane.showMessageDialog( this, "Отключите режим просмотра истории", "Ошибка", WebOptionPane.ERROR_MESSAGE );
 			return false;
 		}
@@ -261,7 +261,7 @@ public class CompetencePanel extends WebPanel implements ActionListener{
 			if ( log.isErrorEnabled() ) log.error( "CompetencePanel.addCompetence(): cannot find catalog in db id=" + id );
 			return false;
 		}
-		if ( catalog.getAncestorCatalog() != null ) {
+		if ( catalog.getAncestor() != null ) {
 			WebOptionPane.showMessageDialog( this, "Отключите режим просмотра истории", "Ошибка", WebOptionPane.ERROR_MESSAGE );
 			return false;
 		}		
@@ -283,7 +283,7 @@ public class CompetencePanel extends WebPanel implements ActionListener{
 			if ( log.isErrorEnabled() ) log.error( "CompetencePanel.addIndicator(): cannot find competence in db id=" + id );
 			return false;
 		}
-		if ( competence.getAncestorCompetence() != null ) {
+		if ( competence.getAncestor() != null ) {
 			WebOptionPane.showMessageDialog( this, "Отключите режим просмотра истории", "Ошибка", WebOptionPane.ERROR_MESSAGE );
 			return false;
 		}
@@ -308,7 +308,7 @@ public class CompetencePanel extends WebPanel implements ActionListener{
 			if ( log.isErrorEnabled() ) log.error("CompetencePanel.editCatalog() : current catalog with id=" + id + "  cannot find");
 			return;
 		}		
-		if ( ( catalog.getId() < 5 ) || ( catalog.getAncestorCatalog() != null ) ) { 
+		if ( ( catalog.getId() < 5 ) || ( catalog.getAncestor() != null ) ) { 
 			CatalogDlg.showCatalogDlg(owner, "Просмотр каталога", catalog, true, 
 					IconResource.getInstance().getIcon( IconType.CATALOG_EDIT, 64 ) );
 			return;
@@ -316,7 +316,7 @@ public class CompetencePanel extends WebPanel implements ActionListener{
 		Catalog newCatalog = CatalogDlg.showCatalogDlg(owner, "Редактирование каталога", catalog, false,
 				IconResource.getInstance().getIcon( IconType.CATALOG_EDIT, 64 ) );
 		if ( newCatalog == null ) return;
-		newCatalog.setAncestorCatalog( catalog );
+		newCatalog.setAncestor( catalog );
 		CatalogJPAController.edit( newCatalog, true );
 		tree.getSelectedNode().setUserObject( ORMHelper.findEntity( Catalog.class, id ) );
 		tree.updateUI();
@@ -333,7 +333,7 @@ public class CompetencePanel extends WebPanel implements ActionListener{
 			if ( log.isErrorEnabled() ) log.error( "CompetencePanel.editCompetence() : current competence with id=" + id + "  cannot find" );
 			return;
 		}		
-		if ( ( competence.getVariety() != Competence.PROFESSIONAL_COMPETENCE ) || ( competence.getAncestorCompetence() != null ) ){ 
+		if ( ( competence.getVariety() != Competence.PROFESSIONAL_COMPETENCE ) || ( competence.getAncestor() != null ) ){ 
 			CompetenceDlg.showCompetenceDlg( owner, "Просмотр компетенции", competence, true );
 			return;
 		}		
@@ -350,21 +350,21 @@ public class CompetencePanel extends WebPanel implements ActionListener{
 		if ( checkHistoryView() || !checkRightSelect( Indicator.class ) ) return;
 
 		MainTreeNode te = tree.getSelectedNode();
-		int id = ( ( Indicator ) te.getUserObject() ).getId();
+		Long id = ( ( Indicator ) te.getUserObject() ).getId();
 		Indicator indicator = ( Indicator ) ORMHelper.findEntity( Indicator.class, id, 
 				"competence", "journal", "ancestorIndicator" );
 		if ( indicator == null ) {
 			if ( log.isErrorEnabled() ) log.error( "CompetencePanel.editIndicator() : current indicator with id=" + id + "  cannot find" );
 			return;
 		}		
-		if ( ( indicator.getCompetence().getVariety() != Competence.PROFESSIONAL_COMPETENCE ) || ( indicator.getAncestorIndicator() != null ) ){ 
+		if ( ( indicator.getCompetence().getVariety() != Competence.PROFESSIONAL_COMPETENCE ) || ( indicator.getAncestor() != null ) ){ 
 			IndicatorDlg.showIndicatorDlg( owner, "Просмотр индикатора", indicator, true );
 			return;
 		}		
 
 		Indicator newIndicator = IndicatorDlg.showIndicatorDlg(owner, "Редактирование индикатора", indicator, false);
 		if ( newIndicator == null ) return;
-		newIndicator.setAncestorIndicator( indicator );
+		newIndicator.setAncestor( indicator );
 		IndicatorJPAController.edit( newIndicator, true );
 		tree.getSelectedNode().setUserObject( ORMHelper.findEntity( Indicator.class, id ) );
 		tree.updateUI();

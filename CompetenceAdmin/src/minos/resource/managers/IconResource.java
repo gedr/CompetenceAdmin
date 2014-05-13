@@ -13,7 +13,11 @@ public class IconResource {
 	public static enum IconType { 
 		ADD(1, "add.png"), EDIT(2, "edit.png"), DELETE(3, "delete.png"), 
 		UP(4, "up.png"), DOWN(5, "down.png"), NEXT(6, "next.png"), 
-		RELOAD(7, "reload.png"), CLOCK(8, "clock.png"), OK(9, "ok.png"), NO(10, "no.png"),		
+		RELOAD(7, "reload.png"), CLOCK(8, "clock.png"), OK(9, "ok.png"), NO(10, "no.png"),	
+		SEARCH(11, "search.png"), PSEARCH(12, "psearch.png"), FILTER(13, "filter.png"),
+		DICE(14, "dice.png"), FLAG(15, "flag.png"), PENCIL(16, "pencil.png"),
+		GEAR(17, "gear.png"), HAMMER(18, "hammer.png"), KEY(19, "key.png"),
+		RULER(1000, "ruler.png"), LIGHT_BULB(1001, "light_bulb.png"), BULB(1002, "bulb.png"),		 
 		USER_ADD(20, "users_add.png"), USER_DELETE(21, "users_delete.png"),
 		BUSER_ADD(22, "business_user_add.png"),  BUSER_EDIT(23, "business_user_edit.png"), BUSER_DELETE(24, "business_user_delete.png"),		  
 		LEVEL0(90, "level0.png"), LEVEL1(91, "level1.png"), LEVEL2(92, "level2.png"), 

@@ -1,6 +1,7 @@
 package minos.data.services;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -11,6 +12,8 @@ import javax.persistence.TypedQuery;
 
 import org.apache.openjpa.persistence.OpenJPAEntityManager;
 import org.apache.openjpa.persistence.OpenJPAPersistence;
+
+import ru.gedr.util.tuple.Pair;
 
 public class ORMHelper {
 	private static EntityManagerFactory factory;
@@ -201,4 +204,34 @@ public class ORMHelper {
 			 ORMHelper.closeManager();
 		 }
 	 }
+
+	 public static <T> List<T> findByJpqQuery( String jpql, Class<T> clz ) {
+		 ORMHelper.openManager();
+		 try {
+			 List<T> lst = ORMHelper.getCurrentManager().createQuery( jpql, clz ).getResultList();
+			 return lst;
+		 } catch ( Exception ex ) {
+			 throw ex;
+		 } finally {
+			 ORMHelper.closeManager();			 
+		 }
+	 }
+	 
+	 public static <T> List<T> findByJpqQueryWithParam( String jpql, Class<T> clz, 
+			 Pair<String, Object>[] params ) {
+		 ORMHelper.openManager();
+		 try {
+			 TypedQuery<T> q = ORMHelper.getCurrentManager().createQuery( jpql, clz );
+			 if ( ( params != null ) && ( params.length > 0 ) ) {
+				 for ( Pair<String, Object> p : params ) q.setParameter( p.getFirst(), p.getSecond() );
+			 }			 
+			 List<T> lst = q.getResultList();
+			 return lst;
+		 } catch ( Exception ex ) {
+			 throw ex;
+		 } finally {
+			 ORMHelper.closeManager();			 
+		 }
+	 }
+
 }

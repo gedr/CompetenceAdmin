@@ -131,9 +131,9 @@ public class CompetenceDlg extends WebDialog implements ActionListener {
 	private void addHistoryInfo() {
 		if ( ( competence == null ) || ( competence.getVersion() == 1 ) ) return;
 		Competence cmt = (Competence) ORMHelper.findEntity( Competence.class, competence.getId(), "ancestorCompetence", "historyCompetences" );
-		if ( cmt.getHistoryCompetences() == null ) return;
+		if ( cmt.getHistoryList() == null ) return;
 				
-		WebList list = new WebList( cmt.getHistoryCompetences() );
+		WebList list = new WebList( cmt.getHistoryList() );
 		list.setEditable( false );
 				
 		WebScrollPane scrollPane = new WebScrollPane( list, false );

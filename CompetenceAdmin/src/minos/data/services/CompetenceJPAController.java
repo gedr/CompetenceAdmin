@@ -38,15 +38,15 @@ public class CompetenceJPAController {
 
 	/**
 	 * create history copy of competence
-	 * @param competence is not null reference. getAncestorCompetence and journal of getAncestorCompetence fields must be filled 
+	 * @param competence is not null reference. getAncestor and journal of getAncestor fields must be filled 
 	 * @param flagSaveEntity
 	 * @return history competence
 	 */
 	public static Competence edit( Competence competence, boolean flagSaveEntity ) {
-		if ( ( competence == null ) || ( competence.getAncestorCompetence() == null ) 
-				|| ( competence.getAncestorCompetence().getJournal() == null ) ) return null;
+		if ( ( competence == null ) || ( competence.getAncestor() == null ) 
+				|| ( competence.getAncestor().getJournal() == null ) ) return null;
 		
-		Competence basis = competence.getAncestorCompetence();		
+		Competence basis = competence.getAncestor();		
 		// change name and description
 		String name = basis.getName();
 		String dscr = basis.getDescription();

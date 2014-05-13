@@ -255,7 +255,7 @@ public class ProfilePatternDlg extends JDialog implements ActionListener {
 										( getSelectedPostMask() != profilePattern.getPostMask() ) ||
 										( getSelectedFilialMask() != profilePattern.getFilialMask() ) ) ) ) ) {		
 			res = new ProfilePattern( txtName.getText(), txtDescr.getText(), getSelectedFilialMask(), 0, 
-					getSelectedPostMask(), (short) 0, ( Timestamp ) null, ( Catalog ) null);
+					getSelectedPostMask(), (short) 0, ( Timestamp ) null, ( Catalog ) null, null);
 		}
 		setVisible( false );		
 	}	

@@ -26,7 +26,7 @@ public class IndicatorJPAController {
 		Short item = (Short) q.getSingleResult();
 		ORMHelper.closeManager();
 		
-		indicator.setAncestorIndicator( null );
+		indicator.setAncestor( null );
 		indicator.setItem( ++item );
 		indicator.setStatus( StatusConst.STATUS_ACTIVE );
 		indicator.setVersion( (short) 1 );
@@ -43,11 +43,11 @@ public class IndicatorJPAController {
 	 * @return
 	 */
 	public static Indicator edit( Indicator indicator, boolean flagSaveEntity ) {
-		if ( ( indicator == null ) || ( indicator.getAncestorIndicator() == null ) || 
-				( indicator.getAncestorIndicator().getCompetence() == null ) ||
-				( indicator.getAncestorIndicator().getJournal() == null ) ) return null;
+		if ( ( indicator == null ) || ( indicator.getAncestor() == null ) || 
+				( indicator.getAncestor().getCompetence() == null ) ||
+				( indicator.getAncestor().getJournal() == null ) ) return null;
 
-		Indicator basis = indicator.getAncestorIndicator();		
+		Indicator basis = indicator.getAncestor();		
 		// change name
 		String tmp = basis.getName();
 		basis.setName( indicator.getName() );

@@ -1,6 +1,5 @@
 package minos.ui;
 
-
 import java.awt.BorderLayout;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
@@ -8,6 +7,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
@@ -15,12 +15,15 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.sql.DataSource;
 import javax.swing.JMenuBar;
+import javax.swing.event.InternalFrameAdapter;
+import javax.swing.event.InternalFrameEvent;
+import javax.swing.event.InternalFrameListener;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ru.gedr.util.tuple.Pair;
-
+import ru.gedr.util.tuple.Triplet;
 import minos.Start;
 import minos.data.services.ORMHelper;
 import minos.data.services.ORMHelper.QueryType;
@@ -32,6 +35,7 @@ import minos.resource.managers.ResourcesConst;
 import minos.ui.adapters.ActionAdapter;
 import minos.ui.dialogs.DBConnectionDlg;
 import minos.ui.panels.CompetencePanel;
+import minos.ui.panels.MeasurePanel;
 import minos.ui.panels.PostProfilePanel;
 import minos.ui.panels.ProfilePatternPanel;
 import minos.utils.DBConnectionConfig;
@@ -47,16 +51,15 @@ import com.alee.laf.menu.WebMenu;
 import com.alee.laf.menu.WebMenuBar;
 import com.alee.laf.menu.WebMenuItem;
 import com.alee.laf.optionpane.WebOptionPane;
+import com.alee.laf.panel.WebPanel;
 import com.alee.laf.rootpane.WebFrame;
 import com.alee.utils.SwingUtils;
-
 import com.google.common.base.Joiner;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-
 import com.microsoft.sqlserver.jdbc.SQLServerDataSource;
 
-public class MainWnd extends WebFrame implements ActionListener, Runnable {
+public class MainWnd extends WebFrame implements ActionListener {
 	private static final long serialVersionUID = 1L;
 	private static Logger log = LoggerFactory.getLogger( MainWnd.class );	
 	
@@ -66,9 +69,30 @@ public class MainWnd extends WebFrame implements ActionListener, Runnable {
 	private static final String EVENT_CMD = "E";
 	private static final String ROLE_CMD = "R";
 	private static final String USER_CMD = "U";
-
+	
+	private static final String FRAME_COMPETENCES 		= "Компетенции";
+	private static final String FRAME_PROFILE_PATTERNS 	= "Шаблоны профилей";
+	private static final String FRAME_POST_PROFILES 	= "Профили должностей";
+	private static final String FRAME_MEASURES			= "Мероприятия оценки";
+	
 	private ProgramConfig cfg = null;
 	private WebDesktopPane desktop = null;
+	private WebStatusBar statusBar = null;
+	private List<Pair<WebInternalFrame, Long>> frames = Collections.synchronizedList( new ArrayList<Pair<WebInternalFrame, Long>>() );
+	private InternalFrameListener ifl = new InternalFrameAdapter() {
+
+		@Override
+		public void internalFrameClosing( InternalFrameEvent e ) {
+			for ( Pair<WebInternalFrame, Long> p : frames ) {
+				if ( ( p != null ) && ( p.getFirst() != null ) 
+						&& p.getFirst().getName().equals( e.getInternalFrame().getName() ) ) {
+					frames.remove( p );
+					break;
+				}
+			}			
+			super.internalFrameClosing( e );
+		}
+	};
 
 	public MainWnd( ProgramConfig programConfig ) {
 		super( "Компетенции: администрирование" );
@@ -82,19 +106,61 @@ public class MainWnd extends WebFrame implements ActionListener, Runnable {
         addWindowListener(new WindowAdapter() {
 
         	@Override
-        	public void windowClosing(WindowEvent arg) {
-        		super.windowClosing(arg);
+        	public void windowClosing(WindowEvent arg) {        		
         		if( log.isDebugEnabled() ) log.debug( "main window closing" );
         		if ( cfg != null ) cfg.setMainWindowBound( MainWnd.this.getBounds() );
         		Start.wakeup();
+        		super.windowClosing(arg);
         	}
-        });        
-        setVisible(true);        
-        SwingUtils.invokeLater( this );      
+        });   
+
+        setVisible(true);
+        new Thread( new Runnable() {
+
+        	@Override
+        	public void run() {
+        		init();				
+        	}
+        } ).start();              
 	}
 
 	@Override
-	public void run() {
+	public void actionPerformed(ActionEvent e) {
+		WebInternalFrame frame;
+		switch (e.getActionCommand()) {
+		case COMPETENCE_CMD:
+			frame = findFrame( FRAME_COMPETENCES, 0 );
+			if ( frame != null ) desktop.moveToFront( frame );
+			else frame = createFrame( FRAME_COMPETENCES, new CompetencePanel( this ), 0 );
+			break;
+
+		case PROFILE_CMD:
+			frame = findFrame( FRAME_PROFILE_PATTERNS, 0 );
+			if ( frame != null ) desktop.moveToFront( frame );
+			else frame = createFrame( FRAME_PROFILE_PATTERNS, new ProfilePatternPanel( this ), 0 );
+			break;
+
+		case POST_CMD:
+			frame = findFrame( FRAME_POST_PROFILES, 0 );
+			if ( frame != null ) desktop.moveToFront( frame );
+			else frame = createFrame( FRAME_POST_PROFILES, new PostProfilePanel( this ), 0 );
+			break;
+		
+		case EVENT_CMD:
+			frame = findFrame( FRAME_MEASURES, 0 );
+			if ( frame != null ) desktop.moveToFront( frame );
+			else frame = createFrame( FRAME_MEASURES, new MeasurePanel( this ), 0 );
+			break;
+
+		default:
+			break;
+		}
+	}
+	
+	/**
+	 * initializing DB and UI
+	 */
+	private void init() {		
 		if ( !initDb() ) {
 			WebOptionPane.showMessageDialog( MainWnd.this, " Не создано соединения для подключения к БД", "Ошибка", 
 					WebOptionPane.ERROR_MESSAGE );
@@ -119,55 +185,65 @@ public class MainWnd extends WebFrame implements ActionListener, Runnable {
 			return;			
 		}
 		
-        setJMenuBar( initMenu() );
-        setLayout( new BorderLayout() );
-        
-        desktop = new WebDesktopPane();
+		SwingUtils.invokeLater( new Runnable() {
+			
+			@Override
+			public void run() {			    
+				desktop = new WebDesktopPane();
+				statusBar = new WebStatusBar ();		       		        
 
-		// Simple status bar
-        WebStatusBar statusBar = new WebStatusBar ();
-        add(statusBar);
+		        // Simple memory bar
+		        WebMemoryBar memoryBar = new WebMemoryBar ();
+		        memoryBar.setPreferredWidth( memoryBar.getPreferredSize ().width + 20 );
+		        statusBar.add( memoryBar, ToolbarLayout.END );  
 
-        // Simple memory bar
-        WebMemoryBar memoryBar = new WebMemoryBar ();
-        memoryBar.setPreferredWidth( memoryBar.getPreferredSize ().width + 20 );
-        statusBar.add( memoryBar, ToolbarLayout.END );
-        
-        add( desktop, BorderLayout.CENTER );
-        add( statusBar, BorderLayout.SOUTH );				
+		        MainWnd.this.setJMenuBar( initMenu() );
+		        MainWnd.this.setLayout( new BorderLayout() );		        
+		        MainWnd.this.add( desktop, BorderLayout.CENTER );
+		        MainWnd.this.add( statusBar, BorderLayout.SOUTH );	
+			}
+		} );    		
 	}
-	
-	
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		switch (e.getActionCommand()) {
-		case COMPETENCE_CMD:
-			WebInternalFrame ifrm = new WebInternalFrame("Компетенции", true, true, true, false);
-			ifrm.add( new CompetencePanel( this ) );
-			ifrm.setBounds(10,  10,  200, 400);
-			desktop.add(ifrm);
-			ifrm.setVisible(true);
-			break;
-		case PROFILE_CMD:
-			WebInternalFrame ifrp = new WebInternalFrame("Шаблоны профилей", true, true, true, false);
-			ifrp.add( new ProfilePatternPanel( this ) );
-			ifrp.setBounds(10,  10,  200, 400);
-			desktop.add(ifrp);
-			ifrp.setVisible(true);
-			break;
-		case POST_CMD:
-			WebInternalFrame ifrps = new WebInternalFrame("Профили должностей", true, true, true, false);
-			ifrps.add( new PostProfilePanel( this ) );
-			ifrps.setBounds(10,  10,  200, 400);
-			desktop.add(ifrps);
-			ifrps.setVisible(true);
-			break;
-
-		default:
-			break;
+		
+	/**
+	 * search internal frame in open internal frame's list
+	 * @param frameName - name internal frame
+	 * @param id - actors' id
+	 * @return existing internal frame or null
+	 */
+	private WebInternalFrame findFrame( String frameName, long id ) {		
+		for ( Pair<WebInternalFrame, Long> p : frames ) {
+			if ( ( p != null ) && ( p.getFirst() != null ) 
+					&& p.getFirst().getName().equals( frameName ) 
+					&& ( p.getSecond() != null ) && ( p.getSecond() == id ) )
+				return p.getFirst();
 		}
+		return null;
 	}
 	
+	/**
+	 * create new internal frame and add to list 
+	 * @param name - internal frame's name
+	 * @param panel - contents of internal frame
+	 * @param val - actor's id or null
+	 * @return new internal frame
+	 */
+	private WebInternalFrame createFrame( String name, WebPanel panel, long val ) {
+		WebInternalFrame frame = new WebInternalFrame( name, true, true, true, false );
+		frame.setName( name );		
+		frame.setContentPane( panel );
+		frame.setBounds( 10, 10, MainWnd.this.getWidth() * 3 / 4 + 10, MainWnd.this.getHeight() * 3 / 4 + 10 );
+		frame.addInternalFrameListener( ifl );		
+		frames.add( new Pair<WebInternalFrame, Long>( frame, Long.valueOf( val ) ) );
+		desktop.add( frame );
+		frame.setVisible( true );
+		return frame;
+	}
+	
+	/**
+	 * initializing main menu
+	 * @return new main menu
+	 */
 	private JMenuBar initMenu() {
 		WebMenu modelMenu = new WebMenu("Модели");
 		modelMenu.add( new WebMenuItem( new ActionAdapter("Компетенции", null, COMPETENCE_CMD, null, this, 0) ) );
@@ -185,10 +261,13 @@ public class MainWnd extends WebFrame implements ActionListener, Runnable {
 		mb.add(modelMenu);
 		mb.add(optionMenu);
 		mb.add(helpMenu);
-
 		return mb;
 	}
 
+	/**
+	 * initializing DB connection (show dialog, make DataSource and pass to openJPA)
+	 * @return true if success
+	 */
 	private boolean initDb() {
 		DBConnectionConfig dbc = ( cfg == null ? null : cfg.getDBConnectionConfig() );
 		if ( ( cfg == null ) || ( cfg.getDBConnectionConfig() == null ) || cfg.isShowDBConnectionConfig() ) {
@@ -218,7 +297,12 @@ public class MainWnd extends WebFrame implements ActionListener, Runnable {
 		}
 		return false;
 	}
-	
+
+	/**
+	 * fill DataSource structure for connection with DB 
+	 * @param dbcfg - parameters for DataSource
+	 * @return complete DataSource's object or null 
+	 */
 	private DataSource fillDataSource( DBConnectionConfig dbcfg ) { 
 		if ( dbcfg == null ) return null;
 		
@@ -239,9 +323,13 @@ public class MainWnd extends WebFrame implements ActionListener, Runnable {
 		return msds;
 	}
 
+	/**
+	 * receive info about current user
+	 * @return true if success
+	 */
 	private boolean initUser() {
 		try {
-			List<Object[]> lst = ORMHelper.executeQuery( QueryType.SQL, "SELECT HOST_NAME(), SUSER_NAME()", null );
+			List<Object[]> lst = ORMHelper.executeQuery( QueryType.SQL, "SELECT HOST_NAME(), SUSER_NAME()", Object[].class );
 			if( ( lst == null ) || ( lst.size() != 1 ) || ( lst.get(0).length != 2 ) || 
 					( lst.get(0)[0] == null ) || ( lst.get(0)[1] == null ) ) {
 				if( log.isErrorEnabled() ) log.error( "MainWnd.initUser() : request return incorrect host, login" );
@@ -250,8 +338,10 @@ public class MainWnd extends WebFrame implements ActionListener, Runnable {
 			String host = (String) lst.get(0)[0];
 			String login = (String) lst.get(0)[1];
 			
-			String sql = Joiner.on("").join("select person_id, role_id from minos.PersonAddon where logins like '%",  login, "%' ").toString();
-			lst = ORMHelper.executeQuery( QueryType.SQL, sql, null);
+			String sql = Joiner.on("").
+					join( "SELECT person_id, role_id FROM Minos.PersonAddon WHERE logins LIKE '%",  login, "%' " ).
+					toString();
+			lst = ORMHelper.executeQuery( QueryType.SQL, sql, Object[].class );
 			if( (lst == null) || (lst.size() != 1) || (lst.get(0).length != 2) ) {
 				if( log.isErrorEnabled() ) log.error("MainWnd.initUser() : request return incorrect person_id, role_id");
 				return false;
@@ -269,6 +359,10 @@ public class MainWnd extends WebFrame implements ActionListener, Runnable {
 		return false;
 	}
 
+	/**
+	 * caching Level table
+	 * @return true if success
+	 */
 	private boolean initLevelsCache() {
 		try {
 			List<Level> lst = ( List<minos.entities.Level> ) ORMHelper.executeQuery( QueryType.NAMED, "Level.findAll", Level.class );		
@@ -281,6 +375,10 @@ public class MainWnd extends WebFrame implements ActionListener, Runnable {
 		return false;
 	}
 	
+	/**
+	 * load common configuration data
+	 * @return true if load success
+	 */
 	private boolean loadCommonCfg() {
 		try {
 			List<Object[]> lst = ORMHelper.executeQuery( QueryType.SQL, "SELECT name, resourceKod, value FROM minos.ProgramCommonConfig", null );
@@ -311,6 +409,13 @@ public class MainWnd extends WebFrame implements ActionListener, Runnable {
 					List<Pair<String, Long>> lpsl = gson.fromJson( val, t );
 					Resources.getInstance().put( rkod, lpsl );
 					continue;
+				}
+				
+				if ( rkod == ResourcesConst.FILIALS_PREFIX ) {
+					Gson gson = new Gson();
+					java.lang.reflect.Type t = new TypeToken<List<Triplet<Integer, String, Byte[]>>>(){}.getType();
+					List<Triplet<Integer, String, Byte[]>> lpsb = gson.fromJson( val, t );
+					Resources.getInstance().put( rkod, lpsb );
 				}
 			}			
 			return true;
