@@ -1,0 +1,8 @@
+BULK INSERT tOrgStatDol 
+    FROM 'C:\tmp\tOrgStatDol.csv' 
+    WITH 
+    ( 
+		CODEPAGE = '1251',
+        FIELDTERMINATOR = ',', 
+        ROWTERMINATOR = '\n' 
+    )

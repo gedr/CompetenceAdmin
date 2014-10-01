@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project basedir="." default="make" name="MinosCompetenceAdmin">
+
+    <property name="debuglevel" value="source,lines,vars"/>
+    <property name="target" value="1.7"/>
+    <property name="source" value="1.7"/>
+    <property name="sdir" value="c:/DevTools/Lib/java/" />  
+
+	
+	<path id="openJPA">
+         <pathelement location="${sdir}/apache-openjpa-2.2.2/openjpa-all-2.2.2.jar"/> 
+    </path>
+
+	<path id="sqljdbc">
+         <pathelement location="${sdir}/MS_SQL/sqljdbc4.jar"/> 
+    </path>
+
+	<path id="slf4j_api">
+         <pathelement location="${sdir}/slf4j-1.7.6/slf4j-api-1.7.6.jar"/> 
+    </path>
+    
+    <path id="slf4j_log4j">
+         <pathelement location="${sdir}/slf4j-1.7.6/slf4j-log4j12-1.7.6.jar"/> 
+    </path>
+    
+    <path id="apache_log4j">
+         <pathelement location="${sdir}/apache-log4j-1.2.17/log4j-1.2.17.jar"/> 
+    </path>
+    
+    <path id="tuple">
+         <pathelement location="${sdir}/tuple2.jar"/> 
+    </path>
+    
+    <path id="CompetenceEntities">
+         <pathelement location="${sdir}/CompetenceEntities.jar"/> 
+    </path>
+
+    <path id="guava">
+         <pathelement location="${sdir}/guava-15.0.jar"/> 
+    </path>
+    
+    <path id="miglayout">
+         <pathelement location="${sdir}/migLayout/miglayout-4.0-swing.jar"/> 
+    </path>
+    
+    <path id="images">
+         <pathelement location="${sdir}/images.jar"/> 
+    </path>
+    
+    <path id="gson">
+         <pathelement location="${sdir}/google-gson-2.2.4/gson-2.2.4.jar"/> 
+    </path>
+
+    <path id="weblaf">
+         <pathelement location="${sdir}/weblaf-1.26/weblaf-1.26.jar"/> 
+    </path>
+
+    <path id="poi">
+         <pathelement location="${sdir}/poi-3.10.1/poi-3.10.1-20140818.jar"/> 
+    </path>
+
+    <path id="poi-ooxml">
+         <pathelement location="${sdir}/poi-3.10.1/poi-ooxml-3.10.1-20140818.jar"/> 
+    </path>
+
+    <path id="poi-ooxml-schemas">
+         <pathelement location="${sdir}/poi-3.10.1/poi-ooxml-schemas-3.10.1-20140818.jar"/> 
+    </path>
+
+    <path id="poi-scratchpad">
+         <pathelement location="${sdir}/poi-3.10.1/poi-scratchpad-3.10.1-20140818.jar"/> 
+    </path>
+
+    <path id="dom4j">
+         <pathelement location="${sdir}/poi-3.10.1/ooxml-lib/dom4j-1.6.1.jar"/> 
+    </path>
+
+    <path id="xmlbeans">
+         <pathelement location="${sdir}/poi-3.10.1/ooxml-lib/xmlbeans-2.6.0.jar"/> 
+    </path>
+
+	<target name="init">
+        <mkdir dir="build/classes"/>
+        <copy includeemptydirs="false" todir="build/classes">
+            <fileset dir="src">
+            	<exclude name="**/*.java"/>
+            	<exclude name="**/*.txt"/>
+            	<exclude name="**/*.sql"/>
+            	<exclude name="**/*.rar"/>
+         	</fileset>
+         	<dirset dir="src">
+      		 	<include name="META-INF"/>
+      		</dirset>
+        </copy>
+    </target>
+
+	<target name="clean">
+        <delete dir="build/classes"/>
+    </target>
+    
+    <target name="build" depends="init">
+        <echo message="${ant.project.name}: ${ant.file}"/>
+        <javac debug="true" debuglevel="${debuglevel}" destdir="build/classes" includeantruntime="false" source="${source}" target="${target}">
+            <src path="src"/>
+            <classpath refid="openJPA"/>
+            <classpath refid="sqljdbc"/>
+            <classpath refid="slf4j_api"/>
+            <classpath refid="slf4j_log4j"/>
+            <classpath refid="apache_log4j"/>
+            <classpath refid="tuple"/>
+            <classpath refid="CompetenceEntities"/>
+            <classpath refid="guava"/>
+            <classpath refid="miglayout"/>
+            <classpath refid="images"/>
+            <classpath refid="gson"/>
+            <classpath refid="weblaf"/>
+            <classpath refid="poi"/>
+            <classpath refid="poi-ooxml"/>
+            <classpath refid="poi-ooxml-schemas"/>
+            <classpath refid="poi-scratchpad"/>
+            <classpath refid="dom4j"/>
+            <classpath refid="xmlbeans"/>
+
+        
+        </javac>
+    </target>
+
+
+	<target name="make_jar">
+		<jar destfile="build/CompetenceAdmin.jar" basedir="build/classes" />
+	</target>
+	
+	<target name="make" depends="clean, init, build, make_jar"/>
+              	
+</project>
