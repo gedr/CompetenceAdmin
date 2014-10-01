@@ -1,4 +1,4 @@
-package minos.data.exporter;
+п»їpackage minos.data.exporter;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -130,36 +130,36 @@ public class ActorsExporter {
 
 	private void makeTitle( Sheet sheet ) {
 		 Row row = sheet.createRow( 0 );
-		 row.createCell( 0 ).setCellValue( "Код" );
-		 row.createCell( 1 ).setCellValue( "Эксперт ФИО" );
-		 row.createCell( 2 ).setCellValue( "Эксперт пол" );
-		 row.createCell( 3 ).setCellValue( "Эксперт возраст" );
-		 row.createCell( 4 ).setCellValue( "Эксперт филиал" );
-		 row.createCell( 5 ).setCellValue( "Эксперт подразделение" );
-		 row.createCell( 6 ).setCellValue( "Эксперт должность" );
-		 row.createCell( 7 ).setCellValue( "Эксперт тип должности" );
-		 row.createCell( 8 ).setCellValue( "Оцениваемый ФИО" );
-		 row.createCell( 9 ).setCellValue( "Оцениваемый пол" );
-		 row.createCell( 10 ).setCellValue( "Оцениваемый возраст" );
-		 row.createCell( 11 ).setCellValue( "Оцениваемый филиал" );
-		 row.createCell( 12 ).setCellValue( "Оцениваемый подразделение" );
-		 row.createCell( 13 ).setCellValue( "Оцениваемый должность" );
-		 row.createCell( 14 ).setCellValue( "Оцениваемый тип должности" );
-		 row.createCell( 15 ).setCellValue( "Профиль название" );
-		 row.createCell( 16 ).setCellValue( "Профиль филиал" );
-		 row.createCell( 17 ).setCellValue( "Профиль подразделение" );
-		 row.createCell( 18 ).setCellValue( "Профиль должность" );
-		 row.createCell( 19 ).setCellValue( "Резерв" );
-		 row.createCell( 20 ).setCellValue( "Вид" );
-		 row.createCell( 21 ).setCellValue( "Уровень" );
-		 row.createCell( 22 ).setCellValue( "Оценка общая" );
-		 row.createCell( 23 ).setCellValue( "Оценка общая (максимум)" );
-		 row.createCell( 24 ).setCellValue( "Оценка Профессиональные компетенции" );
-		 row.createCell( 25 ).setCellValue( "Оценка Профессиональные компетенции (максимум)" );
-		 row.createCell( 26 ).setCellValue( "Оценка Личностно-деловые компетенции" );
-		 row.createCell( 27 ).setCellValue( "Оценка Личностно-деловые компетенции (максимум)" );
-		 row.createCell( 28 ).setCellValue( "Оценка Управленческие компетенции" );
-		 row.createCell( 29 ).setCellValue( "Оценка Управленческие компетенции (максимум)" );	
+		 row.createCell( 0 ).setCellValue( "РљРѕРґ" );
+		 row.createCell( 1 ).setCellValue( "Р­РєСЃРїРµСЂС‚ Р¤РРћ" );
+		 row.createCell( 2 ).setCellValue( "Р­РєСЃРїРµСЂС‚ РїРѕР»" );
+		 row.createCell( 3 ).setCellValue( "Р­РєСЃРїРµСЂС‚ РІРѕР·СЂР°СЃС‚" );
+		 row.createCell( 4 ).setCellValue( "Р­РєСЃРїРµСЂС‚ С„РёР»РёР°Р»" );
+		 row.createCell( 5 ).setCellValue( "Р­РєСЃРїРµСЂС‚ РїРѕРґСЂР°Р·РґРµР»РµРЅРёРµ" );
+		 row.createCell( 6 ).setCellValue( "Р­РєСЃРїРµСЂС‚ РґРѕР»Р¶РЅРѕСЃС‚СЊ" );
+		 row.createCell( 7 ).setCellValue( "Р­РєСЃРїРµСЂС‚ С‚РёРї РґРѕР»Р¶РЅРѕСЃС‚Рё" );
+		 row.createCell( 8 ).setCellValue( "РћС†РµРЅРёРІР°РµРјС‹Р№ Р¤РРћ" );
+		 row.createCell( 9 ).setCellValue( "РћС†РµРЅРёРІР°РµРјС‹Р№ РїРѕР»" );
+		 row.createCell( 10 ).setCellValue( "РћС†РµРЅРёРІР°РµРјС‹Р№ РІРѕР·СЂР°СЃС‚" );
+		 row.createCell( 11 ).setCellValue( "РћС†РµРЅРёРІР°РµРјС‹Р№ С„РёР»РёР°Р»" );
+		 row.createCell( 12 ).setCellValue( "РћС†РµРЅРёРІР°РµРјС‹Р№ РїРѕРґСЂР°Р·РґРµР»РµРЅРёРµ" );
+		 row.createCell( 13 ).setCellValue( "РћС†РµРЅРёРІР°РµРјС‹Р№ РґРѕР»Р¶РЅРѕСЃС‚СЊ" );
+		 row.createCell( 14 ).setCellValue( "РћС†РµРЅРёРІР°РµРјС‹Р№ С‚РёРї РґРѕР»Р¶РЅРѕСЃС‚Рё" );
+		 row.createCell( 15 ).setCellValue( "РџСЂРѕС„РёР»СЊ РЅР°Р·РІР°РЅРёРµ" );
+		 row.createCell( 16 ).setCellValue( "РџСЂРѕС„РёР»СЊ С„РёР»РёР°Р»" );
+		 row.createCell( 17 ).setCellValue( "РџСЂРѕС„РёР»СЊ РїРѕРґСЂР°Р·РґРµР»РµРЅРёРµ" );
+		 row.createCell( 18 ).setCellValue( "РџСЂРѕС„РёР»СЊ РґРѕР»Р¶РЅРѕСЃС‚СЊ" );
+		 row.createCell( 19 ).setCellValue( "Р РµР·РµСЂРІ" );
+		 row.createCell( 20 ).setCellValue( "Р’РёРґ" );
+		 row.createCell( 21 ).setCellValue( "РЈСЂРѕРІРµРЅСЊ" );
+		 row.createCell( 22 ).setCellValue( "РћС†РµРЅРєР° РѕР±С‰Р°СЏ" );
+		 row.createCell( 23 ).setCellValue( "РћС†РµРЅРєР° РѕР±С‰Р°СЏ (max)" );
+		 row.createCell( 24 ).setCellValue( "РћС†РµРЅРєР° РџСЂРѕС„РµСЃСЃРёРѕРЅР°Р»СЊРЅС‹Рµ РєРѕРјРїРµС‚РµРЅС†РёРё" );
+		 row.createCell( 25 ).setCellValue( "РћС†РµРЅРєР° РџСЂРѕС„РµСЃСЃРёРѕРЅР°Р»СЊРЅС‹Рµ РєРѕРјРїРµС‚РµРЅС†РёРё (max)" );
+		 row.createCell( 26 ).setCellValue( "РћС†РµРЅРєР° Р›РёС‡РЅРѕСЃС‚РЅРѕ-РґРµР»РѕРІС‹Рµ РєРѕРјРїРµС‚РµРЅС†РёРё" );
+		 row.createCell( 27 ).setCellValue( "РћС†РµРЅРєР° Р›РёС‡РЅРѕСЃС‚РЅРѕ-РґРµР»РѕРІС‹Рµ РєРѕРјРїРµС‚РµРЅС†РёРё (max)" );
+		 row.createCell( 28 ).setCellValue( "РћС†РµРЅРєР° РЈРїСЂР°РІР»РµРЅС‡РµСЃРєРёРµ РєРѕРјРїРµС‚РµРЅС†РёРё" );
+		 row.createCell( 29 ).setCellValue( "РћС†РµРЅРєР° РЈРїСЂР°РІР»РµРЅС‡РµСЃРєРёРµ РєРѕРјРїРµС‚РµРЅС†РёРё (max)" );	
 	}
 	
 	private void fillSheet( Row row, Actors a ) {
@@ -299,7 +299,7 @@ public class ActorsExporter {
 	}
 	
 	/**
-	 * поиск в строке ¤чейки с полем содержащим маркер pattern
+	 * РїРѕРёСЃРє РІ СЃС‚СЂРѕРєРµ В¤С‡РµР№РєРё СЃ РїРѕР»РµРј СЃРѕРґРµСЂР¶Р°С‰РёРј РјР°СЂРєРµСЂ pattern
 	 * @return
 	 */
 	private int findCompetenceTestResult( XWPFTableRow row, String pattern ) {
@@ -540,7 +540,7 @@ public class ActorsExporter {
 
 				case SINNNER_DIVISION_PATTERN:
 					if( a.getSinnerType() == Actors.SINNER_TYPE_ALIEN ) {
-						txt = "Неизвестно";
+						txt = "РќРµРёР·РІРµСЃС‚РЅРѕ";
 					} else {
 						txt = ( ( sou == null ) || ( sou.getDivision() == null ) ? "null" 
 								: sou.getDivision().getFullName() );
@@ -551,7 +551,7 @@ public class ActorsExporter {
 
 				case SINNNER_POSITION_PATTERN:				
 					if( a.getSinnerType() == Actors.SINNER_TYPE_ALIEN ) {
-						txt = "Неизвестно";
+						txt = "РќРµРёР·РІРµСЃС‚РЅРѕ";
 					} else {
 						txt = ( ( sou == null ) || ( sou.getPost() == null ) ? "null" : sou.getPost().getName() );
 					}
