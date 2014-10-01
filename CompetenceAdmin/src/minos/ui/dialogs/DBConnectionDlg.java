@@ -35,7 +35,7 @@ public class DBConnectionDlg extends WebDialog implements ActionListener {
 		initUI();
 	}	
 	
-	public static DBConnectionConfig showDBConnectionDlg( Window owner, DBConnectionConfig config ) {
+	public static DBConnectionConfig show( Window owner, DBConnectionConfig config ) {
 		DBConnectionDlg dlg = new DBConnectionDlg(owner, config );
 		dlg.setDefaultCloseOperation( DISPOSE_ON_CLOSE );
 		dlg.setModal(true);

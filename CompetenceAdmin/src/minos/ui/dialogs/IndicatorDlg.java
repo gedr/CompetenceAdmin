@@ -1,205 +1,129 @@
 package minos.ui.dialogs;
 
+import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.Window;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.List;
+import java.awt.event.KeyEvent;
 
 import javax.swing.ImageIcon;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import javax.swing.JComboBox;
+import javax.swing.text.JTextComponent;
 
 import net.miginfocom.swing.MigLayout;
-import minos.data.services.ORMHelper;
-import minos.data.services.ORMHelper.QueryType;
-import minos.entities.Indicator;
-import minos.entities.Level;
-import minos.ui.panels.CompetencePanel;
 
-import com.alee.extended.panel.CollapsiblePaneListener;
-import com.alee.extended.panel.WebCollapsiblePane;
 import com.alee.laf.button.WebButton;
-import com.alee.laf.combobox.WebComboBox;
 import com.alee.laf.label.WebLabel;
 import com.alee.laf.list.WebList;
-import com.alee.laf.rootpane.WebDialog;
-import com.alee.laf.scroll.WebScrollPane;
 import com.alee.laf.text.WebTextArea;
-import com.alee.laf.text.WebTextField;
 
-public class IndicatorDlg extends WebDialog implements ActionListener {
+import minos.data.orm.OrmHelper;
+import minos.entities.Indicator;
+import minos.entities.Level;
+import minos.ui.ComponentFabrica;
+import minos.ui.adapters.ActionAdapter;
+import minos.utils.ResourceKeeper;
+import minos.utils.ResourceKeeper.IType;
+
+public class IndicatorDlg extends BasisDlg<Indicator> {
+	// =================================================================================================================
+	// Constants
+	// =================================================================================================================
 	private static final long serialVersionUID = 1L;
-	private static final String OK_CMD = "1";
-	private static final String CANCEL_CMD = "2";
-	
-	private static Logger log = LoggerFactory.getLogger( CompetencePanel.class );
+	private static final int ICON_SIZE = 48;
 
-	private WebTextField txt = null;
-	private  WebComboBox lvl = null; 
-	
-	private Indicator 	 indicator = null;
-	private Indicator 	 res = null;
-	private boolean 	 readOnly = true;
-	private Level[]  	 levels = null;
-	
-	public IndicatorDlg( Window owner, String title, Indicator indicator, boolean readOnly ) {
-		super( owner, title );
-		this.indicator = indicator;
-		this.readOnly  = readOnly;
-		List<Level> lst = ORMHelper.executeQuery( QueryType.NAMED, "Level.findAll", Level.class );
-		if ( ( lst == null ) || ( lst.size() == 0 ) ) {
-			if ( log.isErrorEnabled() ) log.error( "IndicatorDlg.IndicatorDlg() :  levels not found" );
-			return;
-		}
-		levels = new Level[ lst.size() ];
-		int ind = 0;
-		for( Level l : lst ) levels[ ind++ ] = l;
-		initUI( null );
+	// =================================================================================================================
+	// Fields
+	// =================================================================================================================
+	private JTextComponent txt;
+	private JComboBox<Level> cmb;
+
+	// =================================================================================================================
+	// Constructors
+	// =================================================================================================================
+	public IndicatorDlg(Window owner, String title, Indicator source, boolean readOnly) {
+		super( owner, title, source, readOnly );
 	}
-		
-	public static Indicator showIndicatorDlg( Window owner, String title, Indicator indicator, boolean readOnly ) {
-		IndicatorDlg dlg = new IndicatorDlg( owner, title, indicator, readOnly );
+
+	// =================================================================================================================
+	// Methods for/from SuperClass/Interfaces
+	// =================================================================================================================
+	@Override
+	protected void initUI() {
+		ImageIcon icon = ( readOnly ? ResourceKeeper.getIcon( IType.INDICATOR, ICON_SIZE ) 
+				: ( source == null ? ResourceKeeper.getIcon( IType.INDICATOR_ADD, ICON_SIZE ) 
+						: ResourceKeeper.getIcon( IType.INDICATOR_ADD, ICON_SIZE ) ) ); 
+		txt = ComponentFabrica.createOneLineTextEditor( 30, readOnly, "Введите название индикатора...", 
+				source == null ? null : source.getName() );
+		cmb = ComponentFabrica.createLevelComboBox( source == null ? null : source.getLevel() );
+
+		setLayout( new MigLayout( "", "[][grow]", "[][][][][]" + ( source == null ? "" : "[][]" ) ) ); // [grow]
+		add( new WebLabel( icon ), "cell 0 0 1 3,gapx 0 10,gapy 0 10" );
+		add( new WebLabel( "Название индикатора" ), "cell 1 0,growx,aligny top");
+		add( txt, "cell 1 1,growx,a ligny top" );
+		add( new WebLabel( "Уровень индикатора" ), "cell 1 2,growx,aligny bottom,gapy 5 0" );			
+		add( cmb, "cell 0 3 2 1,grow" );
+		if ( !readOnly ) add( new WebButton( ActionAdapter.build( "OK", null, CMD_OK, "Сохранить ", this, 
+				KeyEvent.VK_ENTER ) ), "cell 1 4,alignx right" );
+		add( new WebButton( ActionAdapter.build( "Отмена", null, CMD_CANCEL, "Выйти без сохранения", this, 
+				KeyEvent.VK_ESCAPE ) ), "cell 1 4,alignx right" );
+		if ( source != null )  {
+			add( ComponentFabrica.createCollapsingPane( null, "Детали", makeTechInfo(), new Dimension( 0, 100 ) ), 
+					"cell 0 5, span, growx, wrap" );	
+			Component c = makeHistoryInfo();
+			if ( c != null ) add( ComponentFabrica.createCollapsingPane( null, "История", c, new Dimension( 0, 100 ) ), 
+					"cell 0 6, span, growx, wrap" );
+		}
+	}
+
+	@Override
+	protected void save() {
+		if ( readOnly || ( txt.getText() == null ) || ( txt.getText().trim().length() == 0 ) 
+				|| ( ( source != null ) && txt.getText().equals( source.getName() ) 
+						&& cmb.getSelectedItem().equals( source.getLevel() ) ) ) return;
+		result = new Indicator( txt.getText(), ( source == null ? ( short ) 1 : source.getItem() ), 
+				Indicator.STATUS_ACTIVE, ( short ) 1, ( source == null ? null : source.getCompetence() ), 
+				( Level ) cmb.getSelectedItem(), null, null );
+	}
+
+	// =================================================================================================================
+	// Methods
+	// =================================================================================================================
+	public static Indicator show( Window owner, String title, Indicator entity, boolean readOnly ) {
+		IndicatorDlg dlg = new IndicatorDlg( owner, title, entity, readOnly );
 		dlg.setDefaultCloseOperation( DISPOSE_ON_CLOSE );
-		dlg.setModal( true );
+		dlg.setModal(true);
 		dlg.pack();
-		dlg.setVisible( true );
+		dlg.setVisible(true);	
 		return dlg.getResult();		
 	}	
 
-	private void initUI(ImageIcon icon) {
-		setLayout( new MigLayout( "", "[][grow]", "[][][][][]" + ( indicator == null ? "" : "[][]" ) ) ); // [grow]
-
-		add( new WebLabel(icon), "cell 0 0 1 3,gapx 0 10,gapy 0 10" );
-
-		add( new WebLabel( "Название индикатора" ), "cell 1 0,growx,aligny top");
-		txt = new WebTextField( 30 );
-		txt.setInputPrompt( "Введите название индикатора ..." );
-		txt.setInputPromptFont( txt.getFont().deriveFont( Font.ITALIC ) );
-		txt.setEditable( !readOnly );
-		add( txt, "cell 1 1,growx,aligny top" );
-		
-		add( new WebLabel( "Уровень индикатора" ), "cell 1 2,growx,aligny bottom,gapy 5 0" );		
-		lvl = new WebComboBox( levels );
-		add( lvl, "cell 0 3 2 1,grow" );
-		
-		if ( indicator != null ) {
-			if( indicator.getName() != null ) txt.setText( indicator.getName() );
-			if( indicator.getLevel() != null ) lvl.setSelectedIndex( indicator.getLevel().getId() - 1 );;
-		}
-		
-		if ( !readOnly ) {
-			WebButton okBtn = new WebButton("OK");
-			okBtn.setActionCommand(OK_CMD);		
-			okBtn.addActionListener(this);
-			add(okBtn, "flowx,cell 1 4,alignx right");
-		}
-		
-		WebButton cancelBtn = new WebButton("Отмена");
-		cancelBtn.setActionCommand(CANCEL_CMD);
-		cancelBtn.addActionListener(this);		
-		add(cancelBtn, "cell 1 4,alignx right");
-		addTechInfo();
-		addHistoryInfo();
-	}	
-
-	private void addTechInfo() {
-		if ( indicator == null ) return;		
-		WebTextArea txtArea = new WebTextArea ();
-		txtArea.setEditable( false );
-		txtArea.append( "Код: " + indicator.getId() + "\n" );
-		txtArea.append( "Версия: " + indicator.getVersion() + "\n" );
-		txtArea.append( "Статус: " + indicator.getStatus() + "\n" );
-		txtArea.append( "Создан: " + indicator.getJournal().getCreateMoment() + "\n" );
-		if ( indicator.getVersion() > 1 ) txtArea.append( "Редактирован: " + indicator.getJournal().getEditMoment() + "\n" );
-				
-		WebScrollPane scrollPane = new WebScrollPane( txtArea, false );
-        scrollPane.setPreferredSize( new Dimension( 100, 100 ) );
-
-		WebCollapsiblePane pane = new WebCollapsiblePane( null, "техн. информ." , scrollPane );
-		pane.setExpanded( false );
-		pane.addCollapsiblePaneListener(new CollapsiblePaneListener() {
-			private int h = 100;
-			
-			@Override
-			public void expanding(WebCollapsiblePane pane) {
-				Dimension d = IndicatorDlg.this.getSize();
-				d.setSize(d.getWidth(), d.getHeight() + h ) ;
-				IndicatorDlg.this.setSize(d);
-			}
-			
-			@Override
-			public void expanded(WebCollapsiblePane pane) { }
-
-			@Override
-			public void collapsing(WebCollapsiblePane pane) { }
-			
-			@Override
-			public void collapsed(WebCollapsiblePane pane) { 
-				Dimension d = IndicatorDlg.this.getSize();
-				d.setSize(d.getWidth(), d.getHeight() - h ) ;
-				IndicatorDlg.this.setSize(d);
-			}
-		});
-		add(pane, "cell 0 5, span, growx, wrap");
+	/**
+	 * make component for display catalog's service info
+	 * @return WebList component have catalog's service info or null 
+	 */
+	private Component makeTechInfo() {
+		WebTextArea ta = new WebTextArea ();
+		ta.setEditable( false );
+		ta.append( "Код: " + source.getId() );
+		ta.append( "\nВерсия: " + source.getVersion() );
+		ta.append( "\nСтатус: " + source.getStatus() );
+		ta.append( "\nСоздан: " + source.getJournal().getCreateMoment() );
+		if ( source.getVersion() > 1 ) ta.append( "\nРедактирован: " + source.getJournal().getEditMoment() );
+		return ta;
 	}
 
-	private void addHistoryInfo() {
-		if ( ( indicator == null ) || ( indicator.getVersion() == 1 ) ) return;
-		Indicator indc = (Indicator) ORMHelper.findEntity( Indicator.class, indicator.getId(), "ancestorIndicator", "historyIndicators" );		
-		if ( indc.getHistoryList() == null ) return;
-				
-		WebList list = new WebList( indc.getHistoryList() );
+	/**
+	 * make component for display catalog's history info
+	 * @return WebList component have catalog's history entity or null 
+	 */
+	private Component makeHistoryInfo() {
+		Indicator ind = ( Indicator ) OrmHelper.findEntity( Indicator.class, source.getId(), "ancestor", "historyList" );
+		if ( ind.getAncestor() != null ) {
+			ind = ( Indicator ) OrmHelper.findEntity( Indicator.class, ind.getAncestor().getId(), "historyList" ); 
+		}
+		if ( ( ind.getHistoryList() == null ) || ( ind.getHistoryList().size() == 0 ) ) return null;				
+		WebList list = new WebList( ind.getHistoryList() );
 		list.setEditable( false );
-				
-		WebScrollPane scrollPane = new WebScrollPane( list, false );
-        scrollPane.setPreferredSize( new Dimension( 100, 100 ) );
-
-		WebCollapsiblePane pane = new WebCollapsiblePane( null, "История" , scrollPane );
-		pane.setExpanded( false ); 
-		pane.addCollapsiblePaneListener(new CollapsiblePaneListener() {
-			private int h = 100;
-			
-			@Override
-			public void expanding(WebCollapsiblePane pane) {
-				Dimension d = IndicatorDlg.this.getSize();
-				d.setSize(d.getWidth(), d.getHeight() + h ) ;
-				IndicatorDlg.this.setSize(d);
-			}
-			
-			@Override
-			public void expanded(WebCollapsiblePane pane) { }
-
-			@Override
-			public void collapsing(WebCollapsiblePane pane) { }
-			
-			@Override
-			public void collapsed(WebCollapsiblePane pane) { 
-				Dimension d = IndicatorDlg.this.getSize();
-				d.setSize(d.getWidth(), d.getHeight() - h ) ;
-				IndicatorDlg.this.setSize(d);
-			}
-		});
-		add(pane, "cell 0 6, span, growx, wrap");
-	}
-			
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		if ( ( e.getActionCommand() == OK_CMD ) && ( lvl.getSelectedIndex() >= 0 ) &&
-				( (indicator == null) || 
-						( (indicator != null) && 
-								( !indicator.getName().equals( txt.getText() ) || 
-										( indicator.getLevel().equals( levels[ lvl.getSelectedIndex() ] ) ) ) ) ) ) {
-				res = new Indicator();
-				res.setName( txt.getText() );
-				res.setLevel( levels[ lvl.getSelectedIndex() ] );
-		}
-		setVisible(false);
-	}
-	
-	public Indicator getResult() {
-		return res;
+		return list;	
 	}
 }

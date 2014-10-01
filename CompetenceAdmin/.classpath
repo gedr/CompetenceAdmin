@@ -14,5 +14,12 @@
 	<classpathentry kind="var" path="ED_LIB/migLayout/miglayout-4.0-swing.jar"/>
 	<classpathentry kind="var" path="ED_LIB/images.jar"/>
 	<classpathentry kind="var" path="ED_LIB/google-gson-2.2.4/gson-2.2.4.jar"/>
+	<classpathentry kind="var" path="ED_LIB/poi-3.10.1/poi-3.10.1-20140818.jar"/>
+	<classpathentry kind="var" path="ED_LIB/poi-3.10.1/ooxml-lib/dom4j-1.6.1.jar"/>
+	<classpathentry kind="var" path="ED_LIB/poi-3.10.1/ooxml-lib/xmlbeans-2.6.0.jar"/>
+	<classpathentry kind="var" path="ED_LIB/poi-3.10.1/poi-ooxml-3.10.1-20140818.jar"/>
+	<classpathentry kind="var" path="ED_LIB/poi-3.10.1/poi-ooxml-schemas-3.10.1-20140818.jar"/>
+	<classpathentry kind="var" path="ED_LIB/poi-3.10.1/poi-scratchpad-3.10.1-20140818.jar"/>
+	<classpathentry kind="var" path="ED_LIB"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

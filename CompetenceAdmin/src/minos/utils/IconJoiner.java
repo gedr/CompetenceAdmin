@@ -3,14 +3,16 @@ package minos.utils;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
-public class IconJoiner {	
-	public static ImageIcon HJoiner(int hgap, int vgap, int space, ImageIcon... icons) {
+public class IconJoiner {
+	public static Icon HJoiner(int hgap, int vgap, int space, Icon... icons) {
 		if ( ( icons == null ) || (icons.length == 0 ) ) return null;
 		int width = 0;
 		int height = 0;
-		for ( ImageIcon i : icons ) {
+		for ( Icon i : icons ) {
+			if ( i == null ) continue;
 			width += i.getIconWidth();
 			if ( height < i.getIconHeight() ) height = i.getIconHeight();
 		}
@@ -22,18 +24,20 @@ public class IconJoiner {
 		final Graphics graphics = compositeImage.createGraphics();
 		int x = hgap;
 		int y = vgap;
-		for ( ImageIcon i : icons ) {
-			graphics.drawImage( i.getImage(), x, y, null );
+		for ( Icon i : icons ) {
+			if ( i == null ) continue;
+			i.paintIcon( null, graphics, x, y );
 			x += space + i.getIconWidth();
 		}
 		return new ImageIcon( compositeImage );
 	}
 	
-	public static ImageIcon VJoiner(int hgap, int vgap, int space, ImageIcon... icons) {
+	public static Icon VJoiner(int hgap, int vgap, int space, Icon... icons) {
 		if ( ( icons == null ) || (icons.length == 0 ) ) return null;
 		int width = 0;
 		int height = 0;
-		for ( ImageIcon i : icons ) {
+		for ( Icon i : icons ) {
+			if ( i == null ) continue;
 			height += i.getIconHeight();
 			if ( width < i.getIconWidth() ) width = i.getIconWidth();
 		}
@@ -45,8 +49,9 @@ public class IconJoiner {
 		final Graphics graphics = compositeImage.createGraphics();
 		int x = hgap;
 		int y = vgap;
-		for ( ImageIcon i : icons ) {
-			graphics.drawImage( i.getImage(), x, y, null );
+		for ( Icon i : icons ) {
+			if ( i == null ) continue;
+			i.paintIcon( null, graphics, x, y );
 			y += space + i.getIconHeight();
 		}
 		return new ImageIcon( compositeImage );

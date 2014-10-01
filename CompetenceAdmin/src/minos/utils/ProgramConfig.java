@@ -19,6 +19,7 @@ public class ProgramConfig implements Serializable {
 	private boolean showDBConnectionConfig;
 	private int measureDivider;
 	private int[] actorsColumnSize;
+	private int[] personsColumnSize;
 
 	public boolean saveConfig(String file) {		 
 		Gson gson = new Gson();
@@ -110,4 +111,13 @@ public class ProgramConfig implements Serializable {
 	public void setActorsColumnSize(int[] actorsColumnSize) {
 		this.actorsColumnSize = actorsColumnSize;
 	}
+	
+	public int[] getPersonsColumnSize() {
+		return personsColumnSize;
+	}
+
+	public void setPersonsColumnSize(int[] personsColumnSize) {
+		this.personsColumnSize = personsColumnSize;
+	}
+
 }

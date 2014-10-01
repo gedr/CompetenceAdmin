@@ -1,174 +1,131 @@
 package minos.ui.dialogs;
 
+import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.Window;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 
 import javax.swing.ImageIcon;
+import javax.swing.text.JTextComponent;
 
-import minos.data.services.ORMHelper;
-import minos.entities.Catalog;
 import net.miginfocom.swing.MigLayout;
 
-import com.alee.extended.panel.CollapsiblePaneListener;
-import com.alee.extended.panel.WebCollapsiblePane;
 import com.alee.laf.button.WebButton;
 import com.alee.laf.label.WebLabel;
 import com.alee.laf.list.WebList;
-import com.alee.laf.rootpane.WebDialog;
-import com.alee.laf.scroll.WebScrollPane;
 import com.alee.laf.text.WebTextArea;
-import com.alee.laf.text.WebTextField;
 
-public class CatalogDlg extends WebDialog implements ActionListener {
+import minos.data.orm.OrmHelper;
+import minos.entities.Catalog;
+import minos.entities.Journal;
+import minos.ui.ComponentFabrica;
+import minos.ui.adapters.ActionAdapter;
+import minos.utils.ResourceKeeper;
+import minos.utils.ResourceKeeper.IType;
+
+public class CatalogDlg extends BasisDlg<Catalog> {
+	// =================================================================================================================
+	// Constants
+	// =================================================================================================================
 	private static final long serialVersionUID = 1L;
-	private static final String OK_CMD = "1";
-	private static final String CANCEL_CMD = "2";
+	private static final int ICON_SIZE = 48;
 
-	private WebTextField txtField = null;
-	private Catalog catalog = null;
-	private Catalog res = null;
-	private boolean readOnly = true;
+	// =================================================================================================================
+	// Fields
+	// =================================================================================================================
+	private JTextComponent txt;
 
-	public CatalogDlg(Window owner, String title, Catalog catalog, boolean readOnly, ImageIcon icon) {
-		super(owner, title);
-		this.catalog = catalog;
-		this.readOnly  = readOnly;
-		initUI( icon );		
+	// =================================================================================================================
+	// Constructors
+	// =================================================================================================================
+	public CatalogDlg( Window owner, String title, Catalog source, boolean readOnly) {
+		super( owner, title, source, readOnly );
 	}
-	
-	public static Catalog showCatalogDlg(Window owner, String title, Catalog catalog, boolean readOnly, ImageIcon icon) {
-		CatalogDlg dlg = new CatalogDlg(owner, title, catalog, readOnly, icon);
+
+	// =================================================================================================================
+	// Methods for/from SuperClass/Interfaces
+	// =================================================================================================================
+	@Override
+	protected void initUI() {
+		ImageIcon icon = ( readOnly ? ResourceKeeper.getIcon( IType.CATALOG_SIMPLE, ICON_SIZE ) 
+				: ( source == null ? ResourceKeeper.getIcon( IType.CATALOG_ADD, ICON_SIZE ) 
+						: ResourceKeeper.getIcon( IType.CATALOG_EDIT, ICON_SIZE ) ) ); 
+
+		txt = ComponentFabrica.createOneLineTextEditor( 30, readOnly, "Введите название каталога...", 
+				source == null ? null : source.getName() );
+
+		setLayout( new MigLayout( "", "[][grow]", "[][][][][]" ) ); 
+
+		add( new WebLabel( icon ), "cell 0 0 1 3,gapx 0 10,gapy 0 10" );
+		add( new WebLabel( "Название" ), "cell 1 0,growx,aligny top" );
+		add( txt, "cell 1 1,growx,aligny top" );
+		if ( !readOnly ) add( new WebButton( ActionAdapter.build( "OK", ResourceKeeper.getIcon( IType.OK, 24 ), CMD_OK, 
+				"Сохранить", this, KeyEvent.VK_ENTER ) ), "cell 1 2,alignx right" );
+		add( new WebButton( ActionAdapter.build( "Отмена", ResourceKeeper.getIcon( IType.CANCEL, 24 ), CMD_CANCEL, 
+				"Выйти без сохранения", this, KeyEvent.VK_ESCAPE ) ), "cell 1 2,alignx right" );
+
+		if ( source != null )  {
+			add( ComponentFabrica.createCollapsingPane( null, "Детали", makeTechInfo(), new Dimension( 0, 100 ) ), 
+					"cell 0 3, span, growx, wrap" );	
+			Component hic = makeHistoryInfo();
+			if ( hic != null ) add( ComponentFabrica.createCollapsingPane( null, "История", hic, 
+					new Dimension( 0, 100 ) ), 
+					"cell 0 4, span, growx, wrap" );
+		}
+	}
+
+	@Override
+	protected void save() {
+		if ( readOnly || ( txt.getText() == null ) || ( txt.getText().trim().length() == 0 ) 
+				|| ( ( source != null ) && txt.getText().equals( source.getName() ) ) ) return;
+		result = new Catalog( txt.getText(), 
+				source == null ? 0 : source.getItem(), 
+						Catalog.STATUS_ACTIVE, 
+						source == null ? Catalog.EMPTY : source.getVariety(), 
+								( short ) 1,
+								source == null ? null : source.getParentCatalog(),
+										null, null, null, ( Journal ) null );
+	}
+
+	// =================================================================================================================
+	// Methods
+	// =================================================================================================================
+	public static Catalog show( Window owner, String title, Catalog catalog, boolean readOnly ) {
+		CatalogDlg dlg = new CatalogDlg( owner, title, catalog, readOnly );
 		dlg.setDefaultCloseOperation( DISPOSE_ON_CLOSE );
-		dlg.setModal(true);
+		dlg.setModal( true );
 		dlg.pack();
-		dlg.setVisible(true);
+		dlg.setVisible( true );	
 		return dlg.getResult();		
 	}	
-	
-	private void initUI(ImageIcon icon) {
-		setLayout( new MigLayout( "", "[][grow]", "[][][][][]" )); 
 
-		add(new WebLabel(icon), "cell 0 0 1 3,gapx 0 10,gapy 0 10");
-		add(new WebLabel("Название каталога"), "cell 1 0,growx,aligny top");
-
-		txtField = new WebTextField( 30 );
-		txtField.setInputPrompt( "Введите название каталога ..." );
-		txtField.setInputPromptFont( txtField.getFont().deriveFont( Font.ITALIC ) );
-		txtField.setEditable( !readOnly );
-		add(txtField, "cell 1 1,growx,aligny top");
-		if ( (catalog != null) && (catalog.getName() != null) ) txtField.setText( catalog.getName() );		
-		
-		if ( !readOnly ) {
-			WebButton okBtn = new WebButton("OK");
-			okBtn.setActionCommand(OK_CMD);		
-			okBtn.addActionListener(this);
-			add(okBtn, "flowx,cell 1 2,alignx right");
-		}
-		
-		WebButton cancelBtn = new WebButton("Отмена");
-		cancelBtn.setActionCommand(CANCEL_CMD);
-		cancelBtn.addActionListener(this);		
-		add(cancelBtn, "cell 1 2,alignx right");
-		addTechInfo();
-		addHistoryInfo();
-	}	
-	
-	private void addTechInfo() {
-		if ( catalog == null ) return;
-		
-		WebTextArea txtArea = new WebTextArea ();
-		txtArea.setEditable( false );
-		txtArea.append( "Код: " + catalog.getId() + "\n" );
-		txtArea.append( "Версия: " + catalog.getVersion() + "\n" );
-		txtArea.append( "Статус: " + catalog.getStatus() + "\n" );
-		txtArea.append( "Создан: " + catalog.getJournal().getCreateMoment() + "\n" );
-		if ( catalog.getVersion() > 1 ) txtArea.append( "Редактирован: " + catalog.getJournal().getEditMoment() + "\n" );
-				
-		WebScrollPane scrollPane = new WebScrollPane( txtArea, false );
-        scrollPane.setPreferredSize( new Dimension( 100, 100 ) );
-
-		WebCollapsiblePane pane = new WebCollapsiblePane( null, "техн. информ." , scrollPane );
-		pane.setExpanded( false );
-		pane.addCollapsiblePaneListener(new CollapsiblePaneListener() {
-			private int h = 100;
-			
-			@Override
-			public void expanding(WebCollapsiblePane pane) {
-				Dimension d = CatalogDlg.this.getSize();
-				d.setSize(d.getWidth(), d.getHeight() + h ) ;
-				CatalogDlg.this.setSize(d);
-			}
-			
-			@Override
-			public void expanded(WebCollapsiblePane pane) { }
-
-			@Override
-			public void collapsing(WebCollapsiblePane pane) { }
-			
-			@Override
-			public void collapsed(WebCollapsiblePane pane) { 
-				Dimension d = CatalogDlg.this.getSize();
-				d.setSize(d.getWidth(), d.getHeight() - h ) ;
-				CatalogDlg.this.setSize(d);
-			}
-		});
-		add(pane, "cell 0 3, span, growx, wrap");
+	/**
+	 * make component for display catalog's service info
+	 * @return WebList component have catalog's service info or null 
+	 */
+	private Component makeTechInfo() {
+		WebTextArea ta = new WebTextArea ();
+		ta.setEditable( false );
+		ta.append( "Код: " + source.getId() );
+		ta.append( "\nВерсия: " + source.getVersion() );
+		ta.append( "\nСтатус: " + source.getStatus() );
+		ta.append( "\nСоздан: " + source.getJournal().getCreateMoment() );
+		if ( source.getVersion() > 1 ) ta.append( "\nРедактирован: " + source.getJournal().getEditMoment() );
+		return ta;
 	}
 
-	private void addHistoryInfo() {
-		if ( ( catalog == null ) || ( catalog.getVersion() == 1 ) ) return;
-		Catalog cat = (Catalog) ORMHelper.findEntity( Catalog.class, catalog.getId(), "ancestorCatalog", "historyCatalogs" );
-		if ( cat.getHistoryList() == null ) return;
-				
+	/**
+	 * make component for display catalog's history info
+	 * @return WebList component have catalog's history entity or null 
+	 */
+	private Component makeHistoryInfo() {
+		Catalog cat = ( Catalog ) OrmHelper.findEntity( Catalog.class, source.getId(), "ancestor", "historyList" );
+		if ( cat.getAncestor() != null ) {
+			cat = ( Catalog ) OrmHelper.findEntity( Catalog.class, cat.getAncestor().getId(), "historyList" ); 
+		}
+		if ( ( cat.getHistoryList() == null ) || ( cat.getHistoryList().size() == 0 ) ) return null;				
 		WebList list = new WebList( cat.getHistoryList() );
 		list.setEditable( false );
-				
-		WebScrollPane scrollPane = new WebScrollPane( list, false );
-        scrollPane.setPreferredSize( new Dimension( 100, 100 ) );
-
-		WebCollapsiblePane pane = new WebCollapsiblePane( null, "История" , scrollPane );
-		pane.setExpanded( false ); 
-		pane.addCollapsiblePaneListener(new CollapsiblePaneListener() {
-			private int h = 100;
-			
-			@Override
-			public void expanding(WebCollapsiblePane pane) {
-				Dimension d = CatalogDlg.this.getSize();
-				d.setSize(d.getWidth(), d.getHeight() + h ) ;
-				CatalogDlg.this.setSize(d);
-			}
-			
-			@Override
-			public void expanded(WebCollapsiblePane pane) { }
-
-			@Override
-			public void collapsing(WebCollapsiblePane pane) { }
-			
-			@Override
-			public void collapsed(WebCollapsiblePane pane) { 
-				Dimension d = CatalogDlg.this.getSize();
-				d.setSize(d.getWidth(), d.getHeight() - h ) ;
-				CatalogDlg.this.setSize(d);
-			}
-		});
-		add(pane, "cell 0 4, span, growx, wrap");
-	}
-	
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		if ( ( e.getActionCommand() == OK_CMD ) &&
-				( (catalog == null) || 
-						( (catalog != null) && !catalog.getName().equals( txtField.getText() ) ) ) ) {
-				res = new Catalog();
-				res.setName(txtField.getText());			
-		}
-		setVisible(false);
-	}
-
-	public Catalog getResult() {
-		return res;
+		return list;	
 	}
 }

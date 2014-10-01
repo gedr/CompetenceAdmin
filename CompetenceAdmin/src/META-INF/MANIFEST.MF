@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Ant-Version: Apache Ant 1.8.4
+Created-By: GafarovER (GTNN)
+Name: CompetenceAdmin
+Specification-Title: Competence Administration Module
+Specification-Version: 1.2
+Specification-Vendor: GTNN
+Implementation-Title: Competence Administration Module 
+Implementation-Version: build57
+Implementation-Vendor: GTNN
+Main-Class: minos.Start
+Class-Path: lib/openjpa-all-2.2.2.jar lib/sqljdbc4.jar lib/slf4j-api-1.7.6.jar lib/slf4j-log4j12-1.7.6.jar lib/log4j-1.2.17.jar lib/tuple2.jar lib/CompetenceEntities.jar lib/guava-15.0.jar lib/miglayout-4.0-swing.jar lib/images.jar lib/gson-2.2.4.jar lib/weblaf-1.26.jar lib/poi-3.10.1-20140818.jar lib/poi-ooxml-3.10.1-20140818.jar lib/poi-ooxml-schemas-3.10.1-20140818.jar lib/poi-scratchpad-3.10.1-20140818.jar lib/dom4j-1.6.1.jar lib/xmlbeans-2.6.0.jar
